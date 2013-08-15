@@ -27,8 +27,9 @@ Features
 What PostComm.js is Not
 -----------------------
 
-* PostComm.js is not a general purpose postMessage compatibility shim for older browsers ([try porthole instead](http://ternarylabs.github.io/porthole/))
-* Using PostComm.js for a single connection is overkill. Though it can handle a single connection, it is primarily designed for communication with dozens of iframes or windows without interferance.
+* PostComm.js is not a general purpose postMessage compatibility shim for older browsers (try [Porthole](http://ternarylabs.github.io/porthole/) instead)
+* Using PostComm.js for a single connection is overkill. Though it can handle a single connection, it is primarily designed for communication with dozens of iframes or windows without interferance
+* PostComm can only communicate between iframes and windows opened by the page in question. It cannot communicate with other windows or tabs the user opened, even if on the same domain. There is a way to do this, however, through use of the localStorage API (try [Intercom.js](https://github.com/diy/intercom.js/))
 
 
 
