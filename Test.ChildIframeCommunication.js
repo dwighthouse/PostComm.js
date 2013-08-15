@@ -16,7 +16,7 @@
     });
 
     asyncTest('Same domain iFrame communication', 1, function() {
-        var iframe = createIframe('SameDomain', 'Test.Echo.html');
+        var iframe = createIframe('SameDomain', 'Testing.Echo.html');
 
         $(iframe).load(function() {
             comm = PostComm.createIframeComm(iframe, function(message, comm) {
@@ -35,7 +35,7 @@
     });
 
     asyncTest('Cross-domain iFrame communication', 1, function() {
-        var url = otherDomainPath + 'Test.Echo.html';
+        var url = otherDomainPath + 'Testing.Echo.html';
         var iframe = createIframe('CrossDomain', url);
 
         $(iframe).load(function() {

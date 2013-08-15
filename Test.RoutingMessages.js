@@ -20,8 +20,8 @@
     });
 
     asyncTest('Same origin, different sources, correct routing', 2, function() {
-        var iframe1 = createIframe('Frame1', 'Test.Echo.html');
-        var iframe2 = createIframe('Frame2', 'Test.Echo.html');
+        var iframe1 = createIframe('Frame1', 'Testing.Echo.html');
+        var iframe2 = createIframe('Frame2', 'Testing.Echo.html');
         var comm1;
         var comm2;
         var loadCount = 0;
@@ -86,8 +86,8 @@
     });
 
     asyncTest('Different origins, different sources, correct routing', 2, function() {
-        var iframe1 = createIframe('Frame1', (otherDomainPath + 'Test.Echo.html'));
-        var iframe2 = createIframe('Frame2', 'Test.Echo.html');
+        var iframe1 = createIframe('Frame1', (otherDomainPath + 'Testing.Echo.html'));
+        var iframe2 = createIframe('Frame2', 'Testing.Echo.html');
         var comm1;
         var comm2;
         var loadCount = 0;

@@ -10,8 +10,8 @@
     });
 
     asyncTest('Valid comm findable among registered', 2, function() {
-        var iframe1 = createIframe('SearchedFor1', 'Test.Echo.html');
-        var iframe2 = createIframe('SearchedFor2', 'Test.Echo.html');
+        var iframe1 = createIframe('SearchedFor1', 'Testing.Echo.html');
+        var iframe2 = createIframe('SearchedFor2', 'Testing.Echo.html');
         var loadCount = 0;
 
         function iframeLoaded() {
@@ -52,8 +52,8 @@
     });
 
     asyncTest('Destroyed comm not findable among registered', 6, function() {
-        var iframe1 = createIframe('SearchedFor1', 'Test.Echo.html');
-        var iframe2 = createIframe('SearchedFor2', 'Test.Echo.html');
+        var iframe1 = createIframe('SearchedFor1', 'Testing.Echo.html');
+        var iframe2 = createIframe('SearchedFor2', 'Testing.Echo.html');
         var loadCount = 0;
 
         function iframeLoaded() {
@@ -105,7 +105,7 @@
     });
 
     asyncTest('Invalid comm not findable among registered', 1, function() {
-        var iframe = createIframe('NotSearchedFor', 'Test.Echo.html');
+        var iframe = createIframe('NotSearchedFor', 'Testing.Echo.html');
 
         $(iframe).load(function() {
             clearTimeout(timeoutId);

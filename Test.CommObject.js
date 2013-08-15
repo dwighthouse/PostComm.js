@@ -10,7 +10,7 @@
     });
 
     asyncTest('Maintains state', 3, function() {
-        var iframe = createIframe('messageHandler', 'Test.Echo.html');
+        var iframe = createIframe('messageHandler', 'Testing.Echo.html');
 
         var myOrigin = PostComm.convertUrlToOrigin(iframe.src);
         var myContentWindow;
@@ -41,7 +41,7 @@
     });
 
     asyncTest('IsValid check (bad origin)', 1, function() {
-        var iframe = createIframe('BadOrigin', 'Test.Echo.html');
+        var iframe = createIframe('BadOrigin', 'Testing.Echo.html');
 
         $(iframe).load(function() {
             clearTimeout(timeoutId);
@@ -64,7 +64,7 @@
     });
 
     asyncTest('isValid check (good origin and contentWindow)', 1, function() {
-        var iframe = createIframe('GoodOriginAndContentWindow', 'Test.Echo.html');
+        var iframe = createIframe('GoodOriginAndContentWindow', 'Testing.Echo.html');
 
         $(iframe).load(function() {
             clearTimeout(timeoutId);

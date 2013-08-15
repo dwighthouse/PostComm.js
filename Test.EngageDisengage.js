@@ -16,7 +16,7 @@
     });
 
     asyncTest('Disengage', 1, function() {
-        var iframe = createIframe('disengage', 'Test.Echo.html'),
+        var iframe = createIframe('disengage', 'Testing.Echo.html'),
             defaultMessage = 'not message';
 
         PostComm.disengage();
@@ -42,7 +42,7 @@
     });
 
     asyncTest('Re-engage (disengage then engage)', 1, function() {
-        var iframe = createIframe('reengage', 'Test.Echo.html');
+        var iframe = createIframe('reengage', 'Testing.Echo.html');
 
         PostComm.disengage();
         PostComm.engage();

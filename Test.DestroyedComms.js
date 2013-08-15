@@ -16,7 +16,7 @@
     });
 
     asyncTest('Destroyed comm changes state correctly', 9, function() {
-        var iframe = createIframe('destroyable', 'Test.Echo.html');
+        var iframe = createIframe('destroyable', 'Testing.Echo.html');
 
         var myOrigin = PostComm.convertUrlToOrigin(iframe.src);
         var myContentWindow;
@@ -62,7 +62,7 @@
     });
 
     asyncTest('Destroyed comm does not listen', 2, function() {
-        var iframe = createIframe('destroyable', 'Test.Echo.html');
+        var iframe = createIframe('destroyable', 'Testing.Echo.html');
 
         function receiveMessage(message, comm) {
             if (message === 'message1')
