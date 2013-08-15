@@ -8,7 +8,7 @@ PostComm.js is a javascript microlibrary designed to handle the security and rou
 Features
 --------
 
-* Creates persistant 'comm' objects that prepresent the connection across the iframe or window barrier
+* Creates persistent 'comm' objects that represent the connection across the iframe or window barrier
 * Handles the origin-based security for you
 * Only creates one comm per iframe or window, preventing duplication
 * Send and receive postMessage events to any number of iframes and windows
@@ -18,7 +18,7 @@ Features
 * AMD compliant
 * Error message callback customization
 * Creates a single postMessage event binding, not one per comm
-* Does not usurp control over postMessage events, other code can add their own postMessage event handlers
+* Does not usurp control over postMessage events, other code can add its own postMessage event handlers
 * Globally connect and disconnect all connections at any time
 
 
@@ -28,7 +28,7 @@ What PostComm.js is Not
 -----------------------
 
 * PostComm.js is not a general purpose postMessage compatibility shim for older browsers (try [Porthole](http://ternarylabs.github.io/porthole/) instead)
-* Using PostComm.js for a single connection is overkill. Though it can handle a single connection, it is primarily designed for communication with dozens of iframes or windows without interferance
+* Using PostComm.js for a single connection is overkill. Though it can handle a single connection, it is primarily designed for communication with dozens of iframes or windows without interference
 * PostComm can only communicate between iframes and windows opened by the page in question. It cannot communicate with other windows or tabs the user opened, even if on the same domain. There is a way to do this, however, through use of the localStorage API (try [Intercom.js](https://github.com/diy/intercom.js/))
 
 
