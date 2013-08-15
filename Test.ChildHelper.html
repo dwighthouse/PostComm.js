@@ -1,0 +1,23 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>PostComm.js Unit Test Child Helper</title>
+
+
+<p>Echoes the data of any postMessage received back to the parent iframe or window using PostComm.js.</p>
+
+
+<script src="PostComm.js"></script>
+
+<script>
+
+(function() {
+    function echo(message, comm) {
+        comm.sendMessage(message);
+    }
+
+    PostComm.engage();
+
+    PostComm.createParentComm(echo);
+}());
+
+</script>

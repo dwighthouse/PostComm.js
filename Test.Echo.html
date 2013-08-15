@@ -1,0 +1,19 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Echo</title>
+
+<p>Echoes the data of any postMessage received back to the sender.</p>
+
+<script>
+(function() {
+    if (!window.postMessage)
+    {
+        console.log('Error: The environment does not support postMessage!');
+        return;
+    }
+
+    window.onmessage = function(e) {
+        e.source.postMessage(e.data, e.origin);
+    };
+}());
+</script>

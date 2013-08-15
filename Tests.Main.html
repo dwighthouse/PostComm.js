@@ -1,0 +1,59 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>PostComm.js Unit Tests (QUnit)</title>
+
+<link href="//code.jquery.com/qunit/qunit-1.12.0.css" rel="stylesheet">
+
+<p>Window-based Tests</p>
+<ul>
+    <li>Disable any popup blocking to allow the window-based (popup) tests to function correctly
+    <li>On your own server, you can skip these tests by editing the "skipWindowTests" variable in the source code of this file
+</ul>
+
+<p>To run the tests using your own domains:</p>
+<ol>
+    <li>Copy all files in this repository to a server
+        <ul>
+            <li>Running from the local filesystem will not work (file://)
+            <li>Running locally via a local server is possible (try <a href="http://www.wampserver.com/">WAMP</a> for Windows, <a href="http://www.mamp.info/">MAMP</a> for OS X, or <a href="http://www.apachefriends.org/en/xampp.html">XAMPP</a> for Linux)
+        </ul>
+    <li>Copy these files to a server with a different domain
+        <ul>
+            <li>"PostComm.js"
+            <li>"Test.ChildHelper.html"
+            <li>"Test.Echo.html"
+        </ul>
+    <li>Change the "otherDomainPath" variable in the source code of this file to the url address of the files on the server with the different domain (ex. "http://domain2.com/path/to/files/")
+        <ul>
+            <li>Note: Be sure to include the full path and the trailing slash
+        </ul>
+    <li>Navigate to the "Tests.Main.html" file on the first domain to run the tests
+</ol>
+
+
+<div id="qunit"></div>
+<div id="qunit-fixture"></div>
+
+
+<script>
+// Test Options
+var otherDomainPath = 'http://dev2.local/';
+var skipWindowTests = false;
+</script>
+
+<script src="PostComm.js"></script>
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+<script src="//code.jquery.com/qunit/qunit-1.12.0.js"></script>
+<script src="Test.TestHelpers.js"></script>
+
+<script src="Test.CoreRequirements.js"></script>
+<script src="Test.CommObject.js"></script>
+<script src="Test.CommFinding.js"></script>
+<script src="Test.EngageDisengage.js"></script>
+<script src="Test.ChildIframeCommunication.js"></script>
+<script src="Test.ChildWindowCommunication.js"></script>
+<script src="Test.RoutingMessages.js"></script>
+<script src="Test.DestroyedComms.js"></script>
+<script src="Test.ParentIframeCommunication.js"></script>
+<script src="Test.ParentWindowCommunication.js"></script>
