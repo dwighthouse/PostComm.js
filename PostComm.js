@@ -1,3 +1,11 @@
+// PostComm.js
+// https://github.com/dwighthouse/PostComm.js
+// 
+// Under MIT License
+// Copyright (c) 2013 Dwight House
+// 
+// Colossians 3:23-24
+
 /*jslint white: true */
 (function(window) {
     'use strict';
@@ -26,6 +34,7 @@
     // Utilities
     ////////////////////////////////////////////////////////////
 
+    // http://javascriptrules.com/2009/07/22/cross-browser-event-listener-with-design-patterns/
     addEvent = (function () {
         if (window.addEventListener) {
             return function (el, ev, fn) {
@@ -44,6 +53,7 @@
         };
     }());
 
+    // http://javascriptrules.com/2009/07/22/cross-browser-event-listener-with-design-patterns/
     removeEvent = (function () {
         if (window.removeEventListener) {
             return function (el, ev, fn) {
@@ -57,7 +67,7 @@
             };
         }
 
-        return function (el, ev, fn) {
+        return function (el, ev) {
             el['on' + ev] =  undefined;
         };
     }());
@@ -158,7 +168,7 @@
         if (commObject === undefined)
         {
             // Not necessarily an error, since PostComm.js doesn't usurp other functions from handling message events
-            api.errorMessage('Unknown PostComm');
+            api.errorMessage('Unknown Comm');
             return;
         }
 
@@ -209,7 +219,7 @@
         // Should not ever occur because unregistration functions only become active if the comm has been registered
         if (sources === undefined)
         {
-            api.errorMessage('Internal Error: Function unregisterComm called on PostComm with unknown origin');
+            api.errorMessage('Internal Error: Function unregisterComm called on Comm with unknown origin');
             return;
         }
 
@@ -218,7 +228,7 @@
         // Should not ever occur because unregistration functions only become active if the comm has been registered
         if (index === -1)
         {
-            api.errorMessage('Internal Error: Function unregisterComm called on PostComm with unknown source');
+            api.errorMessage('Internal Error: Function unregisterComm called on Comm with unknown source');
             return;
         }
 
