@@ -45,7 +45,27 @@ var skipWindowTests = false;
 
 <script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
 <script src="//code.jquery.com/qunit/qunit-1.12.0.js"></script>
-<script src="Testing.Utils.js"></script>
+<script>
+
+// Helper Utilities
+function typeOf(value) {
+    var s = typeof value;
+
+    return (s !== 'object')         ? s :
+           (!value)                 ? 'null' :
+           (value instanceof Array) ? 'array' : 'object';
+}
+
+function createWindow(id, url) {
+    return window.open(url, id, 'height=200,width=200');
+}
+
+function createIframe(id, url) {
+    $('#qunit-fixture').append('<iframe id="LocalIframe-' + id + '" src="' + url + '"></iframe>');
+    return $(('#LocalIframe-' + id))[0];
+}
+
+</script>
 
 <script src="Test.CoreRequirements.js"></script>
 <script src="Test.CommObject.js"></script>
