@@ -1,0 +1,38 @@
+/* Personal Reset (to be used after normalize.css) */
+html, html *
+{
+    margin:0;
+    padding:0;
+    border:0;
+
+    -moz-box-sizing:border-box;
+    -webkit-box-sizing:border-box;
+    box-sizing:border-box;
+}
+
+html
+{
+    height:100%;
+}
+
+body
+{
+    position:relative;
+    min-height:100%;
+}
+
+a
+{
+    text-decoration:none;
+    color:inherit;
+}
+
+    a:focus
+    {
+        outline:none;
+    }
+
+li
+{
+    list-style:none;
+}
