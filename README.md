@@ -13,12 +13,22 @@ Features
 * Only creates one comm per iframe or window, preventing duplication
 * Send and receive postMessage events to any number of iframes and windows
 * Send and receive postMessage events cross-domain
-* Error message callback customization
-* noConflict mode
+* NoConflict mode
+* No dependancies
 * AMD compliant
+* Error message callback customization
 * Creates a single postMessage event binding, not one per comm
 * Does not usurp control over postMessage events, other code can add their own postMessage event handlers
 * Globally connect and disconnect all connections at any time
+
+
+
+
+What PostComm.js is Not
+-----------------------
+
+* PostComm.js is not a general purpose postMessage compatibility shim for older browsers ([try porthole instead](http://ternarylabs.github.io/porthole/))
+* Using PostComm.js for a single connection is overkill. Though it can handle a single connection, it is primarily designed for communication with dozens of iframes or windows without interferance.
 
 
 
@@ -221,7 +231,7 @@ These browsers successfully passed all unit tests
 
 * Internet Explorer 9 successfully passed all except the window-based tests (known issue)
 * Internet Explorer 9 cannot send object messages, but can send string messages (known issue)
-* Check this (compatibility chart)[http://caniuse.com/#search=postmessage] for more information
+* Check this [compatibility chart](http://caniuse.com/#search=postmessage) for more information
 
 If you want general postMessage-style cross-domain iframe communication for older browsers, but no routing capabilities, try [Porthole](http://ternarylabs.github.io/porthole/).
 
@@ -230,6 +240,7 @@ If you want general postMessage-style cross-domain iframe communication for olde
 
 Unit Tests
 ----------
+
 You can [run the unit tests online](http://dwighthouse.github.io/PostComm.js/) without downloading the code or setting up your own servers. If you want to run the tests yourself, see [instructions on the test page](http://dwighthouse.github.io/PostComm.js/Testing/Testing.Main.html).
 
 
@@ -244,7 +255,7 @@ jQuery's load() function attached to an iframe appears to work well and is used 
 
 Creating a Comm to the parent window should almost never run into this problem, although it is conceivable.
 
-Thus, a helper script that assumes PostComm.js to be used on both sides of the connection could be used to negotiate the timing of the two Comms' creation by broadcasting and listening for existance messages every so often until both sides acknowledged the other. If such a script is made, it will be linked here
+Thus, a helper script that assumes PostComm.js to be used on both sides of the connection could be used to negotiate the timing of the two Comms' creation by broadcasting and listening for existance messages every so often until both sides acknowledged the other. If such a script is made, it will be linked here.
 
 
 
