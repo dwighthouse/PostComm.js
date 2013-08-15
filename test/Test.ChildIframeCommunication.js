@@ -2,7 +2,7 @@
 
     var comm;
 
-    module('Engage and disengage', {
+    module('Child iFrame communication', {
         setup: function() {
             PostComm.engage();
         },
@@ -15,37 +15,8 @@
         }
     });
 
-    asyncTest('Disengage', 1, function() {
-        var iframe = createIframe('disengage', 'Testing.Echo.html'),
-            defaultMessage = 'not message';
-
-        PostComm.disengage();
-
-        $(iframe).load(function() {
-            comm = PostComm.createIframeComm(iframe, function(message, comm) {
-                defaultMessage = message;
-            });
-
-            comm.sendMessage('message');
-
-            setTimeout(function() {
-                clearTimeout(timeoutId);
-                equal(defaultMessage, 'not message', 'Disengaged PostComm did not receive the message');
-                start();
-            }, 100);
-        });
-
-        var timeoutId = setTimeout(function() {
-            ok(false, 'Bailed out of Disengage test, iframe did not load');
-            start();
-        }, 1000);
-    });
-
-    asyncTest('Re-engage (disengage then engage)', 1, function() {
-        var iframe = createIframe('reengage', 'Testing.Echo.html');
-
-        PostComm.disengage();
-        PostComm.engage();
+    asyncTest('Same domain iFrame communication', 1, function() {
+        var iframe = createIframe('SameDomain', sameDomainEchoPath);
 
         $(iframe).load(function() {
             comm = PostComm.createIframeComm(iframe, function(message, comm) {
@@ -58,9 +29,28 @@
         });
 
         var timeoutId = setTimeout(function() {
-            ok(false, 'Bailed out of Re-Engage test, iframe did not load, Echo did not call postMessage, or engaging failed');
+            ok(false, 'Bailed out of same domain iFrame communication test, iframe did not load or Echo did not call postMessage');
             start();
         }, 1000);
+    });
+
+    asyncTest('Cross-domain iFrame communication', 1, function() {
+        var iframe = createIframe('CrossDomain', crossDomainEchoPath);
+
+        $(iframe).load(function() {
+            comm = PostComm.createIframeComm(iframe, function(message, comm) {
+                clearTimeout(timeoutId);
+                equal(message, 'message', 'Echo iframe returned expected message');
+                start();
+            });
+
+            comm.sendMessage('message');
+        });
+
+        var timeoutId = setTimeout(function() {
+            ok(false, 'Bailed out of cross-domain iFrame communication test, iframe did not load or Echo did not call postMessage');
+            start();
+        }, 2000);
     });
 
 }());

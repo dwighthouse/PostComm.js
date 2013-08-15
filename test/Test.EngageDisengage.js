@@ -2,7 +2,7 @@
 
     var comm;
 
-    module('Child iFrame communication', {
+    module('Engage and disengage', {
         setup: function() {
             PostComm.engage();
         },
@@ -15,28 +15,37 @@
         }
     });
 
-    asyncTest('Same domain iFrame communication', 1, function() {
-        var iframe = createIframe('SameDomain', 'Testing.Echo.html');
+    asyncTest('Disengage', 1, function() {
+        var iframe = createIframe('disengage', sameDomainEchoPath),
+            defaultMessage = 'not message';
+
+        PostComm.disengage();
 
         $(iframe).load(function() {
             comm = PostComm.createIframeComm(iframe, function(message, comm) {
-                clearTimeout(timeoutId);
-                equal(message, 'message', 'Echo iframe returned expected message');
-                start();
+                defaultMessage = message;
             });
 
             comm.sendMessage('message');
+
+            setTimeout(function() {
+                clearTimeout(timeoutId);
+                equal(defaultMessage, 'not message', 'Disengaged PostComm did not receive the message');
+                start();
+            }, 100);
         });
 
         var timeoutId = setTimeout(function() {
-            ok(false, 'Bailed out of same domain iFrame communication test, iframe did not load or Echo did not call postMessage');
+            ok(false, 'Bailed out of Disengage test, iframe did not load');
             start();
         }, 1000);
     });
 
-    asyncTest('Cross-domain iFrame communication', 1, function() {
-        var url = otherDomainPath + 'Testing.Echo.html';
-        var iframe = createIframe('CrossDomain', url);
+    asyncTest('Re-engage (disengage then engage)', 1, function() {
+        var iframe = createIframe('reengage', sameDomainEchoPath);
+
+        PostComm.disengage();
+        PostComm.engage();
 
         $(iframe).load(function() {
             comm = PostComm.createIframeComm(iframe, function(message, comm) {
@@ -49,9 +58,9 @@
         });
 
         var timeoutId = setTimeout(function() {
-            ok(false, 'Bailed out of cross-domain iFrame communication test, iframe did not load or Echo did not call postMessage');
+            ok(false, 'Bailed out of Re-Engage test, iframe did not load, Echo did not call postMessage, or engaging failed');
             start();
-        }, 2000);
+        }, 1000);
     });
 
 }());

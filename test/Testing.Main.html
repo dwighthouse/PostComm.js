@@ -2,7 +2,7 @@
 <meta charset="utf-8">
 <title>PostComm.js Unit Tests (QUnit)</title>
 
-<link href="//code.jquery.com/qunit/qunit-1.12.0.css" rel="stylesheet">
+<link href="http://code.jquery.com/qunit/qunit-1.12.0.css" rel="stylesheet">
 
 <p>Window-based Tests</p>
 <ul>
@@ -23,10 +23,7 @@
             <li>"Testing.ChildHelper.html"
             <li>"Testing.Echo.html"
         </ul>
-    <li>Change the "otherDomainPath" variable in the source code of this file to the url address of the files on the server with the different domain (ex. "http://domain2.com/path/to/files/")
-        <ul>
-            <li>Note: Be sure to include the full path and the trailing slash
-        </ul>
+    <li>Change the path variables in the source code ("Test Options") of this file to the new url addresses on your servers (ex. "http://domain2.com/path/to/files/")
     <li>Navigate to the "Testing.Main.html" file on the first domain to run the tests
 </ol>
 
@@ -37,14 +34,18 @@
 
 <script>
 // Test Options
-var otherDomainPath = 'http://dev2.local/';
+var postCommJsPath = 'http://dwighthouse.github.io/PostComm.js/Testing/PostComm.js';
+var sameDomainEchoPath = 'http://dwighthouse.github.io/PostComm.js/Testing/Testing.Echo.html';
+var crossDomainEchoPath = 'http://jsfiddle.net/4HE6M/1/show/';
+var sameDomainChildPath = 'http://dwighthouse.github.io/PostComm.js/Testing/Testing.ChildHelper.html';
+var crossDomainChildPath = 'http://jsfiddle.net/BRnuX/2/show/';
 var skipWindowTests = false;
 </script>
 
 <script src="PostComm.js"></script>
 
-<script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
-<script src="//code.jquery.com/qunit/qunit-1.12.0.js"></script>
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+<script src="http://code.jquery.com/qunit/qunit-1.12.0.js"></script>
 <script>
 
 // Helper Utilities
