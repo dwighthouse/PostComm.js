@@ -19,7 +19,7 @@
         });
 
         asyncTest('Same domain window communication', 1, function() {
-            var childWindow = createWindow('samedomainparentwindowhelper', 'Testing.ChildHelper.html');
+            var childWindow = createWindow('samedomainparentwindowhelper', sameDomainChildPath);
 
             // No apparent way to reliably detect load event on cross-domain window, unlike cross-domain iframes, which respond to the jquery load() event
             setTimeout(function() {
@@ -41,12 +41,11 @@
         });
 
         asyncTest('Cross-domain window communication', 1, function() {
-            var url = otherDomainPath + 'Testing.ChildHelper.html';
-            var childWindow = createWindow('crossdomainparentwindowhelper', url);
+            var childWindow = createWindow('crossdomainparentwindowhelper', crossDomainChildPath);
 
             // No apparent way to detect load event on cross-domain window, unlike cross-domain iframes, which respond to the jquery load() event
             setTimeout(function() {
-                comm = PostComm.createComm(PostComm.convertUrlToOrigin(url), childWindow, function(message, comm) {
+                comm = PostComm.createComm(PostComm.convertUrlToOrigin(crossDomainChildPath), childWindow, function(message, comm) {
                     clearTimeout(timeoutId);
                     equal(message, 'message', 'Child window returned expected message');
                     start();
