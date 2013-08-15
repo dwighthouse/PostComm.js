@@ -23,7 +23,11 @@
             <li>"Testing.ChildHelper.html"
             <li>"Testing.Echo.html"
         </ul>
-    <li>Change the path variables in the source code ("Test Options") of this file to the new url addresses on your servers (ex. "http://domain2.com/path/to/files/")
+    <li>Change the path variables in the source code ("Test Options") of this file to the new url addresses on your servers to the relevant files
+        <ul>
+            <li>Feel free to use the jsfiddle.net versions instead of your own for the second (cross-domain) server's files
+            <li>Make sure that all "Test.[test name].js" test files are in the same folder as this Testing.Main file
+        </ul>
     <li>Navigate to the "Testing.Main.html" file on the first domain to run the tests
 </ol>
 
@@ -35,14 +39,16 @@
 <script>
 // Test Options
 var postCommJsPath = 'http://dwighthouse.github.io/PostComm.js/Testing/PostComm.js';
-var sameDomainEchoPath = 'http://dwighthouse.github.io/PostComm.js/Testing/Testing.Echo.html';
+var sameDomainEchoPath = 'http://dwighthouse.github.io/PostComm.js/Testing/Testing.Echo.html'; // MUST be on same domain
 var crossDomainEchoPath = 'http://jsfiddle.net/4HE6M/1/show/';
-var sameDomainChildPath = 'http://dwighthouse.github.io/PostComm.js/Testing/Testing.ChildHelper.html';
+var sameDomainChildPath = 'http://dwighthouse.github.io/PostComm.js/Testing/Testing.ChildHelper.html'; // MUST be on same domain
 var crossDomainChildPath = 'http://jsfiddle.net/BRnuX/2/show/';
 var skipWindowTests = false;
 </script>
 
-<script src="PostComm.js"></script>
+<script>
+    document.write('<script src="' + postCommJsPath + '"><\/script>');
+</script>
 
 <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
 <script src="http://code.jquery.com/qunit/qunit-1.12.0.js"></script>
