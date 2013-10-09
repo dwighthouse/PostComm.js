@@ -273,7 +273,7 @@ If you want general postMessage-style cross-domain iframe communication for olde
 Unit Tests
 ----------
 
-You can [run the unit tests online](http://dwighthouse.github.io/PostComm.js/) without downloading the code or setting up your own servers. If you want to run the tests yourself, see [instructions on the test page](http://dwighthouse.github.io/PostComm.js/Testing/Testing.Main.html).
+You can [run the unit tests online](http://dwighthouse.github.io/PostComm.js/) without downloading the code or setting up your own servers. If you want to run the tests yourself, see [instructions on the test page](http://dwighthouse.github.io/PostComm.js/PostComm.js/test/Testing.Main.html).
 
 
 
