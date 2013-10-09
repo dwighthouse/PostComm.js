@@ -7,14 +7,12 @@
 
         module('Parent window communication', {
             setup: function() {
-                PostComm.engage();
             },
             teardown: function() {
                 if (comm !== undefined)
                 {
                     comm.destroy();
                 }
-                PostComm.disengage();
             }
         });
 
@@ -23,7 +21,7 @@
 
             // No apparent way to reliably detect load event on cross-domain window, unlike cross-domain iframes, which respond to the jquery load() event
             setTimeout(function() {
-                comm = PostComm.createComm(childWindow.location.origin, childWindow, function(message, comm) {
+                comm = postComm.createComm(childWindow.location.origin, childWindow, function(message, comm) {
                     clearTimeout(timeoutId);
                     equal(message, 'message', 'Child window returned expected message');
                     start();
@@ -45,7 +43,7 @@
 
             // No apparent way to detect load event on cross-domain window, unlike cross-domain iframes, which respond to the jquery load() event
             setTimeout(function() {
-                comm = PostComm.createComm(PostComm.convertUrlToOrigin(crossDomainChildPath), childWindow, function(message, comm) {
+                comm = postComm.createComm(postComm.convertUrlToOrigin(crossDomainChildPath), childWindow, function(message, comm) {
                     clearTimeout(timeoutId);
                     equal(message, 'message', 'Child window returned expected message');
                     start();

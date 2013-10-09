@@ -13,19 +13,22 @@
     ////////////////////////////////////////////////////////////
     // Local Variables
     ////////////////////////////////////////////////////////////
-    var undefined, // Technically illegal (and JSLint complains), but necessary for safety on older browsers
-        addEvent,
+    var addEvent,
         removeEvent,
-        nsPostComm = window.PostComm,
+        nsPostComm = window.postComm,
         commStore = {},
         api = {};
 
     // Structure of commStore:
     // {
-    //     origin: [
-    //         { source, comm, details },
+    //     origin1: [
+    //         comm1, // associated with origin1 and contentWindow1
+    //         comm2, // associated with origin1 and contentWindow2
     //         ...
     //     ],
+    //     origin2: [
+    //         comm3, // associated with origin2 and contentWindow3
+    //     ]
     //     ...
     // }
 
@@ -49,7 +52,7 @@
         }
 
         return function (el, ev, fn) {
-            el['on' + ev] =  fn;
+            el['on' + ev] = fn;
         };
     }());
 
@@ -68,30 +71,31 @@
         }
 
         return function (el, ev) {
-            el['on' + ev] =  undefined;
+            el['on' + ev] = [].u; // undefined
         };
     }());
 
-    function objectArrayIndexOf(objectArray, propertyName, value) {
-        var i,
-            length = objectArray.length;
+    function find(array, callback) {
+        var index,
+            length = array.length,
+            value;
 
-        for (i = 0; i < length; i += 1)
+        for (index = 0; index < length; index += 1)
         {
-            if ((objectArray[i])[propertyName] === value)
+            value = array[index];
+
+            if (callback(value, index))
             {
-                return i;
+                return value;
             }
         }
 
-        return -1;
+        // Not found, returns undefined
     }
 
-    function maybeMakeProperty(object, propertyName, defaultValue) {
-        if (!object.hasOwnProperty(propertyName))
-        {
-            object[propertyName] = defaultValue;
-        }
+    function maybeMakeProperty(object, key, defaultValue) {
+        // If the key already exists, there is no effect, as the value of an object's unassigned key is undefined
+        object[key] = object.hasOwnProperty(key) ? object[key] : defaultValue;
     }
 
     function isValidOrigin(origin) {
@@ -102,14 +106,12 @@
         return source && source.window && source === source.window;
     }
 
-    function noOp() {
-        // Do nothing
-        return;
-    }
+    // Do nothing, return undefined
+    function noop() { return; }
 
-    api.convertUrlToOrigin = function(url) {
+    function convertUrlToOrigin(url) {
         var start = url.indexOf('//') + 2,
-            thirdSlashIndex = url.indexOf('/', start);
+            thirdSlashIndex = url.indexOf('/', start); // Safe: indexOf with start out of bounds === -1
 
         if (thirdSlashIndex !== -1)
         {
@@ -117,7 +119,7 @@
         }
 
         return url;
-    };
+    }
 
     function getParentContentWindow() {
         return window.opener || window.parent;
@@ -125,7 +127,7 @@
 
     function getParentOrigin() {
         var referrer = (window.document || {}).referrer;
-        return referrer !== undefined ? api.convertUrlToOrigin(referrer) : undefined;
+        return referrer ? convertUrlToOrigin(referrer) : [].u; // undefined
     }
 
 
@@ -133,29 +135,13 @@
     // Finding Things
     ////////////////////////////////////////////////////////////
 
-    function findSources(origin) {
-        return commStore[origin];
+    function findComm(origin, contentWindow) {
+        var comms = commStore[origin] || [];
+
+        return find(comms, function(comm) {
+            return comm.getContentWindow() === contentWindow;
+        });
     }
-
-    function findCommObject(origin, source) {
-        var sources = findSources(origin),
-            index;
-
-        if (sources === undefined)
-        {
-            return undefined;
-        }
-
-        index = objectArrayIndexOf(sources, 'source', source);
-
-        return index !== -1 ? sources[index] : undefined;
-    }
-
-    api.findComm = function(origin, contentWindow) {
-        var commObject = findCommObject(origin, contentWindow);
-
-        return commObject !== undefined ? commObject.comm : undefined;
-    };
 
 
     ////////////////////////////////////////////////////////////
@@ -163,16 +149,14 @@
     ////////////////////////////////////////////////////////////
 
     function onMessageReceived(e) {
-        var commObject = findCommObject(e.origin, e.source);
+        var comm = findComm(e.origin, e.source);
 
-        if (commObject === undefined)
+        // No found CommObject is not necessarily an error
+        // PostComm.js does not usurp other message event handlers
+        if (comm)
         {
-            // Not necessarily an error, since PostComm.js doesn't usurp other functions from handling message events
-            api.errorMessage('Unknown Comm');
-            return;
+            (comm.getMessageHandler())(e.data, comm);
         }
-
-        commObject.details.messageHandler(e.data, commObject.comm);
     }
 
 
@@ -182,159 +166,130 @@
 
     // Safe from multiple attachments:
     //   https://developer.mozilla.org/en-US/docs/Web/API/EventTarget.addEventListener#Multiple_identical_event_listeners
-    api.engage = function() {
+    function engage() {
         addEvent(window, 'message', onMessageReceived);
-    };
+    }
 
     // Safe even if engage never called:
     //   https://developer.mozilla.org/en-US/docs/Web/API/EventTarget.removeEventListener#Compatibility
-    api.disengage = function() {
+    function disengage() {
         removeEvent(window, 'message', onMessageReceived);
-    };
+    }
 
 
     ////////////////////////////////////////////////////////////
     // Creating and Destroying Comms
     ////////////////////////////////////////////////////////////
 
-    function registerComm(comm, details) {
-        var origin = details.origin,
-            commData = {
-                source: details.source, // Duplicate to make searching easier
-                comm: comm, // Store so we can find the comm internally
-                details: details
-            };
+    function registerComm(comm) {
+        var origin = comm.getOrigin();
 
         // Add origin if does not exist
         maybeMakeProperty(commStore, origin, []);
 
-        commStore[origin].push(commData);
+        commStore[origin].push(comm);
+
+        return comm;
     }
 
-    function unregisterComm(details) {
-        var origin = details.origin,
-            sources = findSources(origin),
-            index;
+    function unregisterComm(comm) {
+        var origin = comm.getOrigin(),
+            contentWindow = comm.getContentWindow(),
+            comms = commStore[origin] || [];
 
-        // Should not ever occur because unregistration functions only become active if the comm has been registered
-        if (sources === undefined)
-        {
-            api.errorMessage('Internal Error: Function unregisterComm called on Comm with unknown origin');
-            return;
-        }
+        // Abusing the find function to get index of matching contentWindow
+        find(comms, function(queriedComm, index) {
+            if (queriedComm.getContentWindow() === contentWindow)
+            {
+                comms.splice(index, 1);
+                return true; // Stop searching early
+            }
+        });
 
-        index = objectArrayIndexOf(sources, 'source', details.source);
-
-        // Should not ever occur because unregistration functions only become active if the comm has been registered
-        if (index === -1)
-        {
-            api.errorMessage('Internal Error: Function unregisterComm called on Comm with unknown source');
-            return;
-        }
-
-        // At this point, we know the comm exists in the commStore
-        sources.splice(index, 1);
-
-        // No remaining sources on this origin
-        if (sources.length === 0)
+        // No remaining comms on this origin, remove the key
+        if (comms.length === 0)
         {
             delete commStore[origin];
         }
     }
 
-    api.createComm = function(origin, contentWindow, messageHandler) {
-        var details = {},
-            comm = {},
-            existingComm = api.findComm(origin, contentWindow);
+    function nullifyComm(comm) {
+        comm.getOrigin = noop;
+        comm.getContentWindow = noop;
+        comm.getMessageHandler = function() {
+            return noop;
+        };
+        comm.isValid = function() {
+            return false;
+        };
+        comm.sendMessage = noop;
+        comm.destroy = noop;
+
+        return comm;
+    }
+
+    function createComm(origin, contentWindow, messageHandler) {
+        var existingComm = findComm(origin, contentWindow),
+            isValid = isValidOrigin(origin) && isValidSource(contentWindow),
+            comm = {};
 
         // Comm already registered, return it instead of a new comm
-        if (existingComm !== undefined)
+        if (existingComm)
         {
             return existingComm;
         }
 
-        // Store data as local private variables so that they can't be modified on the fly
-        details.origin = origin;
-        details.source = contentWindow;
-        details.messageHandler = messageHandler;
-        details.isValid = isValidOrigin(origin) && isValidSource(contentWindow);
-
-        comm.getOrigin = function() {
-            return details.origin;
-        };
-
-        comm.getContentWindow = function() {
-            return details.source;
-        };
-
-        comm.getMessageHandler = function() {
-            return details.messageHandler;
-        };
-
-        comm.isValid = function() {
-            return details.isValid;
-        };
-
-        function sendMessage(message) {
-            details.source.postMessage(message, details.origin);
-        }
-
-        function destroy() {
-            unregisterComm(details);
-
-            // Shutdown object and api
-            details = undefined;
-
-            comm.getOrigin = noOp;
-            comm.getContentWindow = noOp;
-            comm.getMessageHandler = function() {
-                return noOp;
-            };
-            comm.isValid = function() {
-                return false;
-            };
-            comm.destroy = noOp;
-            comm.sendMessage = noOp;
-        }
-
-        // Invalid comms contain the data given them, but are not functional or registered
-        comm.sendMessage = noOp;
-        comm.destroy = noOp;
-
-        if (details.isValid)
+        if (isValid)
         {
-            comm.sendMessage = sendMessage;
-            comm.destroy = destroy;
-            registerComm(comm, details);
+            // Create valid comm
+            comm = {
+                getOrigin: function() { return origin; },
+                getContentWindow: function() { return contentWindow; },
+                getMessageHandler: function() { return messageHandler; },
+                isValid: function() { return isValid; },
+                sendMessage: function(message) {
+                    contentWindow.postMessage(message, origin);
+                },
+                destroy: function() {
+                    unregisterComm(comm);
+                    nullifyComm(comm);
+                }
+            };
         }
 
-        return comm;
-    };
+        return isValid ? registerComm(comm) : nullifyComm(comm);
+    }
 
-    api.createIframeComm = function(iframe, messageHandler) {
-        var origin = api.convertUrlToOrigin(iframe.src);
-        return api.createComm(origin, iframe.contentWindow, messageHandler);
-    };
+    function createIframeComm(iframe, messageHandler) {
+        var origin = convertUrlToOrigin(iframe.src);
+        return createComm(origin, iframe.contentWindow, messageHandler);
+    }
 
-    api.createParentComm = function(messageHandler) {
-        return api.createComm(getParentOrigin(), getParentContentWindow(), messageHandler);
-    };
+    function createParentComm(messageHandler) {
+        return createComm(getParentOrigin(), getParentContentWindow(), messageHandler);
+    }
 
 
     ////////////////////////////////////////////////////////////
     // Microlibrary Boilerplate
     ////////////////////////////////////////////////////////////
 
-    api.noConflict = function() {
-        window.PostComm = nsPostComm;
+    function noConflict() {
+        window.postComm = nsPostComm;
         return api;
-    };
+    }
 
-    api.errorMessage = function(errorMessage) {
-        return window.console && window.console.log && window.console.log(errorMessage);
-    };
+    // Define public interface using indirect references to protect internal use of public functions
+    api.convertUrlToOrigin = convertUrlToOrigin;
+    api.findComm = findComm;
+    api.engage = engage;
+    api.disengage = disengage;
+    api.createComm = createComm;
+    api.createIframeComm = createIframeComm;
+    api.createParentComm = createParentComm;
+    api.noConflict = noConflict;
 
-    // Context doesn't support postMessage (old browser, or non-browser)
+    // Context does not support postMessage (old browser, or non-browser)
     // Modernizr-based test
     if (!window.postMessage)
     {
@@ -343,7 +298,10 @@
 
     // By default, add namespace to window object
     // Use noConflict() to restore any existing namespace
-    window.PostComm = api;
+    window.postComm = api;
+
+    // By default, engage PostComm.js
+    engage();
 
     // Make AMD Compliant
     // http://javascriptplayground.com/blog/2012/10/making-your-library-amd-compliant/

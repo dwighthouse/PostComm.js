@@ -4,14 +4,13 @@
 
     module('Child iFrame communication', {
         setup: function() {
-            PostComm.engage();
+            
         },
         teardown: function() {
             if (comm !== undefined)
             {
                 comm.destroy();
             }
-            PostComm.disengage();
         }
     });
 
@@ -19,7 +18,7 @@
         var iframe = createIframe('SameDomain', sameDomainEchoPath);
 
         $(iframe).load(function() {
-            comm = PostComm.createIframeComm(iframe, function(message, comm) {
+            comm = postComm.createIframeComm(iframe, function(message, comm) {
                 clearTimeout(timeoutId);
                 equal(message, 'message', 'Echo iframe returned expected message');
                 start();
@@ -38,7 +37,7 @@
         var iframe = createIframe('CrossDomain', crossDomainEchoPath);
 
         $(iframe).load(function() {
-            comm = PostComm.createIframeComm(iframe, function(message, comm) {
+            comm = postComm.createIframeComm(iframe, function(message, comm) {
                 clearTimeout(timeoutId);
                 equal(message, 'message', 'Echo iframe returned expected message');
                 start();

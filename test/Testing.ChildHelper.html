@@ -6,7 +6,7 @@
 <p>Echoes the data of any postMessage received back to the parent iframe or window using PostComm.js.</p>
 
 
-<script src="PostComm.js"></script>
+<script src="../PostComm.js"></script>
 
 <script>
 
@@ -15,9 +15,7 @@
         comm.sendMessage(message);
     }
 
-    PostComm.engage();
-
-    PostComm.createParentComm(echo);
+    postComm.createParentComm(echo);
 }());
 
 </script>

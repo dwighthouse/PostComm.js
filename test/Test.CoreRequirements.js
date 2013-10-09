@@ -6,16 +6,16 @@
         equal(typeOf(window.postMessage), 'function', 'Browser/environment does have postMessage function');
     });
 
-    test('PostComm added to global namespace', function() {
-        equal(typeOf(window.PostComm), 'object', 'PostComm detected in global namespace');
+    test('postComm added to global namespace', function() {
+        equal(typeOf(window.postComm), 'object', 'postComm detected in global namespace');
     });
 
     test('noConflict removes PostComm from global namespace', function() {
-        var api = window.PostComm;
-        window.PostComm.noConflict();
-        equal(window.PostComm, undefined, 'PostComm not detected in global namespace');
+        var api = window.postComm;
+        window.postComm.noConflict();
+        equal(window.postComm, undefined, 'postComm not detected in global namespace');
 
-        window.PostComm = api;
+        window.postComm = api;
     });
 
 }());
