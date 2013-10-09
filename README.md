@@ -67,8 +67,8 @@ PostComm API
 
 ### Origin Conversion Utility
 
-Params: URL string
-Returns: Origin string for input URL
+ * <strong>Params</strong>: URL string
+ * <strong>Returns</strong>: Origin string for input URL
 
 *Could return a mangled string if given an invalid URL*
 
@@ -79,8 +79,8 @@ var origin = postComm.convertUrlToOrigin(url);
 
 ### Find Comm
 
-Params: Origin string and contentWindow for iframe or window
-Returns: Matching comm if it already exists, otherwise undefined
+ * <strong>Params</strong>: Origin string and contentWindow for iframe or window
+ * <strong>Returns</strong>: Matching comm if it already exists, otherwise undefined
 
 ```javascript
 var comm = postComm.findComm(origin, contentWindow);
@@ -91,8 +91,8 @@ var comm = postComm.findComm(origin, contentWindow);
 
 PostComm.js will begin start listening to and routing postMessage events.
 
-Params: None
-Returns: Nothing
+ * <strong>Params</strong>: None
+ * <strong>Returns</strong>: Nothing
 
 *Called once automatically when PostComm.js is loaded*
 
@@ -107,8 +107,8 @@ PostComm.js will stop listening to postMessage events.
 This only disconnects the listener, the comms are still valid and unchanged.
 Call `postComm.engage()` to re-enable listening
 
-Params: None
-Returns: Nothing
+ * <strong>Params</strong>: None
+ * <strong>Returns</strong>: Nothing
 
 ```javascript
 postComm.disengage();
@@ -117,8 +117,8 @@ postComm.disengage();
 
 ### Create Comm
 
-Params: Origin string, contentWindow, and message handler callback function
-Returns: Comm object (see [Comm Object API section](#commobject))
+ * <strong>Params</strong>: Origin string, contentWindow, and message handler callback function
+ * <strong>Returns</strong>: Comm object (see [Comm Object API section](#commobject))
 
 *The associated iframe or window must have already finished loading*
 
@@ -129,8 +129,8 @@ var myComm = postComm.createComm(childOrigin, childContentWindow, myMessageHandl
 
 ### Create iFrame Comm Shortcut
 
-Params: Iframe element ([DOM element, not jQuery element](http://stackoverflow.com/questions/47837/getting-the-base-element-from-a-jquery-object)) and message handler callback function
-Returns: Comm object (see [Comm Object API section](#commobject))
+ * <strong>Params</strong>: Iframe element ([DOM element, not jQuery element](http://stackoverflow.com/questions/47837/getting-the-base-element-from-a-jquery-object)) and message handler callback function
+ * <strong>Returns</strong>: Comm object (see [Comm Object API section](#commobject))
 
 *The associated iframe must have already finished loading*
 
@@ -141,8 +141,8 @@ var myIframeComm = postComm.createIframeComm(iframeElement, myMessageHandler);
 
 ### Create Parent Comm Shortcut
 
-Params: Message handler callback function
-Returns: Comm object (see [Comm Object API section](#commobject))
+ * <strong>Params</strong>: Message handler callback function
+ * <strong>Returns</strong>: Comm object (see [Comm Object API section](#commobject))
 
 *The associated parent (containing window) must have already finished loading*
 
@@ -155,8 +155,8 @@ var myParentComm = postComm.createParentComm(myMessageHandler);
 
 Restores the original value of 'postComm' to the window object, yeilding a reference to be assigned a new variable name
 
-Params: None
-Returns: The postComm reference object
+ * <strong>Params</strong>: None
+ * <strong>Returns</strong>: The postComm reference object
 
 ```javascript
 var myPostComm = postComm.noConflict();
@@ -171,8 +171,8 @@ A comm object maintains the unique connection to another iframe or window. It pr
 
 ### Get Origin
 
-Params: None
-Returns: The comm's origin
+ * <strong>Params</strong>: None
+ * <strong>Returns</strong>: The comm's origin
 
 ```javascript
 var origin = myComm.getOrigin();
@@ -181,8 +181,8 @@ var origin = myComm.getOrigin();
 
 ### Get contentWindow
 
-Params: None
-Returns: The comm's contentWindow
+ * <strong>Params</strong>: None
+ * <strong>Returns</strong>: The comm's contentWindow
 
 ```javascript
 var contentWindow = myComm.getContentWindow();
@@ -191,8 +191,8 @@ var contentWindow = myComm.getContentWindow();
 
 ### Get Message Handler
 
-Params: None
-Returns: The comm's message handler callback function
+ * <strong>Params</strong>: None
+ * <strong>Returns</strong>: The comm's message handler callback function
 
 ```javascript
 var messageHandler = myComm.getMessageHandler();
@@ -201,8 +201,8 @@ var messageHandler = myComm.getMessageHandler();
 
 ### Is Valid Comm
 
-Params: None
-Returns: True if the comm has a valid connection, otherwise false
+ * <strong>Params</strong>: None
+ * <strong>Returns</strong>: True if the comm has a valid connection, otherwise false
 
 ```javascript
 var isValidComm = myComm.isValid();
@@ -211,8 +211,8 @@ var isValidComm = myComm.isValid();
 
 ### Send Message
 
-Params: Message to be sent over the connection
-Returns: Nothing
+ * <strong>Params</strong>: Message to be sent over the connection
+ * <strong>Returns</strong>: Nothing
 
 ```javascript
 myComm.sendMessage(message);
@@ -223,8 +223,8 @@ myComm.sendMessage(message);
 
 Unregisters the comm from PostComm's message routing system and transforms the comm into a nullified comm.
 
-Params: None
-Returns: Nothing
+ * <strong>Params</strong>: None
+ * <strong>Returns</strong>: Nothing
 
 ```javascript
 myComm.destroy();
