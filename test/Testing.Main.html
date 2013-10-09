@@ -2,48 +2,59 @@
 <meta charset="utf-8">
 <title>PostComm.js Unit Tests (QUnit)</title>
 
+<style>
+html, html * { margin:0; padding:0; }
+body { font-family:sans-serif; padding:20px; }
+h2, h3, h4 { padding:10px 0 5px 0;}
+ul, ol { padding-left:30px; }
+p, ul, ol { margin-bottom:15px; }
+ul ul, ul ol, ol ol, ol ul { margin-bottom:0; }
+p + ul, p + ol { margin-top:-10px; }
+</style>
 <link href="http://code.jquery.com/qunit/qunit-1.12.0.css" rel="stylesheet">
-
-<p>Window-based Tests</p>
-<ul>
-    <li>Disable any popup blocking to allow the window-based (popup) tests to function correctly
-    <li>On your own server, you can skip these tests by editing the "skipWindowTests" variable in the source code of this file
-</ul>
-
-<p>To run the tests using your own domains:</p>
-<ol>
-    <li>Copy all files in this repository to a server
-        <ul>
-            <li>Running from the local filesystem will not work (file://)
-            <li>Running locally via a local server is possible (try <a href="http://www.wampserver.com/">WAMP</a> for Windows, <a href="http://www.mamp.info/">MAMP</a> for OS X, or <a href="http://www.apachefriends.org/en/xampp.html">XAMPP</a> for Linux)
-        </ul>
-    <li>Copy these files to a server with a different domain
-        <ul>
-            <li>"PostComm.js"
-            <li>"Testing.ChildHelper.html"
-            <li>"Testing.Echo.html"
-        </ul>
-    <li>Change the path variables in the source code ("Test Options") of this file to the new url addresses on your servers to the relevant files
-        <ul>
-            <li>Feel free to use the jsfiddle.net versions instead of your own for the second (cross-domain) server's files
-            <li>Make sure that all "Test.[test name].js" test files are in the same folder as this Testing.Main file
-        </ul>
-    <li>Navigate to the "Testing.Main.html" file on the first domain to run the tests
-</ol>
-
 
 <div id="qunit"></div>
 <div id="qunit-fixture"></div>
 
 
+<h3>Setup &amp; Options</h3>
+
+<h4>Window-based Tests</h4>
+<p>Popup blockers will interfere with the window-based (popup) tests.</p>
+<p>Skip window tests by running opening this page's URL in a different window with the 'skipWindowTests' hash value.<br>
+<strong>Example:</strong> "http://example.com/PostComm/Testing.Main.html#skipWindowTests"</p>
+
+<h4>Testing on Other Domains</h4>
+<ol>
+    <li>Copy all files in this repository to a server
+        <ul>
+            <li>Must run from a server, not a local file (file://)
+            <li>Local servers can be easily created with <a href="http://www.wampserver.com/">WAMP</a> for Windows, <a href="http://www.mamp.info/">MAMP</a> for OS X, or <a href="http://www.apachefriends.org/en/xampp.html">XAMPP</a> for Linux
+        </ul>
+    <li>Navigate to the "Testing.Main.html" page
+</ol>
+
+<h4>Custom Cross-Domain Testing</h4>
+<p>The cross-domain tests may be run on a non-jsfiddle.net server</p>
+<ol>
+    <li>Copy all files in this repository to a server with a different domain
+    <li>Edit two variables in this file (Testing.Main.html)
+        <ul>
+            <li><strong>crossDomainEchoPath</strong> - change to the URL of Testing.Echo.html on the different domain
+            <li><strong>crossDomainChildPath</strong> - change to the URL of Testing.ChildHelper.html on the different domain
+        </ul>
+    <li>Navigate to the "Testing.Main.html" page on the original domain
+</ol>
+
+
 <script>
 // Test Options
-var postCommJsPath = 'http://dwighthouse.github.io/PostComm.js/Testing/PostComm.js';
-var sameDomainEchoPath = 'http://dwighthouse.github.io/PostComm.js/Testing/Testing.Echo.html'; // MUST be on same domain
+var postCommJsPath = '../PostComm.js';
+var sameDomainEchoPath = 'Testing.Echo.html';
 var crossDomainEchoPath = 'http://jsfiddle.net/4HE6M/1/show/';
-var sameDomainChildPath = 'http://dwighthouse.github.io/PostComm.js/Testing/Testing.ChildHelper.html'; // MUST be on same domain
-var crossDomainChildPath = 'http://jsfiddle.net/BRnuX/2/show/';
-var skipWindowTests = false;
+var sameDomainChildPath = 'Testing.ChildHelper.html';
+var crossDomainChildPath = 'http://jsfiddle.net/BRnuX/3/show/';
+var skipWindowTests = location.hash.substr(1) === 'skipWindowTests';
 </script>
 
 <script>

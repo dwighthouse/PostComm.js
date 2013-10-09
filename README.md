@@ -7,16 +7,15 @@ PostComm.js is a javascript microlibrary designed to handle the security and rou
 
 Features
 --------
-
 * Creates persistent 'comm' objects that represent the connection across the iframe or window barrier
 * Handles the origin-based security for you
 * Only creates one comm per iframe or window, preventing duplication
 * Send and receive postMessage events to any number of iframes and windows
 * Send and receive postMessage events cross-domain
-* NoConflict mode
+* noConflict mode
 * No dependancies
+* Tiny (under 3k minified)
 * AMD compliant
-* Error message callback customization
 * Creates a single postMessage event binding, not one per comm
 * Does not usurp control over postMessage events, other code can add its own postMessage event handlers
 * Globally connect and disconnect all connections at any time
@@ -26,57 +25,41 @@ Features
 
 What PostComm.js is Not
 -----------------------
-
 * PostComm.js is not a general purpose postMessage compatibility shim for older browsers (try [Porthole](http://ternarylabs.github.io/porthole/) instead)
 * Using PostComm.js for a single connection is overkill. Though it can handle a single connection, it is primarily designed for communication with dozens of iframes or windows without interference
 * PostComm can only communicate between iframes and windows opened by the page in question. It cannot communicate with other windows or tabs the user opened, even if on the same domain. There is a way to do this, however, through use of the localStorage API (try [Intercom.js](https://github.com/diy/intercom.js/))
 
 
 
-Usage
------
+Basic Usage
+-----------
 
-Download the [PostComm.js](https://raw.github.com/dwighthouse/PostComm.js/master/PostComm.js) (or [PostComm.min.js](https://raw.github.com/dwighthouse/PostComm.js/master/PostComm.min.js)) file to your site's directory.
-
-Link the file in your source.
-
-    <script src="PostComm.js"></script>
-
-Engage the library so it can listen to message events
-
-    PostComm.engage();
-
-To listen to a child iframe or window manually
-
-    var myComm = PostComm.createComm(childOrigin, childContentWindow, myMessageHandler);
-
-A shortcut to listen to a child iframe if you have the iframe element
-
-    var myIframeComm = PostComm.createIframeComm(iframeElement, myMessageHandler);
-
-A shortcut to listen to a parent (iframe container or parent window)
-
-    var myParentComm = PostComm.createParentComm(myMessageHandler);
-
-*Note: PostComm.js assumes that the contentWindow is known prior to creating a comm. Thus, if the window or iframe is still loading when you create a comm, you may not generate a valid comm.*
-
-You can check that your comm is valid
-
-    console.log('myComm is valid: ' + myComm.isValid());
-
-Send a message through your comm to its iframe or window
-
-    myComm.sendMessage(myMessage);
-
-*Note: a message can be any object or string, except in certain cases, see Compatibility section below.*
-
-Received messages on your comm go to the callback you provided when you created the comm
-
-    function myMessageHandler(message, comm) {
-        console.log('The message sent to me: ' + message);
-        console.log('The comm associated with this message: ' + comm);
-    }
-
+<ol>
+    <li>Download the <a href="https://raw.github.com/dwighthouse/PostComm.js/master/PostComm.js">PostComm.js</a> (or <a href="https://raw.github.com/dwighthouse/PostComm.js/master/PostComm.min.js">PostComm.min.js</a>) file and place it on the server
+    <li>Link the file in your source.<br>
+<pre lang="html">
+&lt;script src="PostComm.js"&gt;&lt;/script&gt;
+</pre>
+    <li>Create a comm object<br>
+<pre lang="javascript">
+var myComm = postComm.createComm(childOrigin, childContentWindow, myMessageHandler);
+</pre>
+<em>The child iframe or window must already have already finished loading</em>
+    <li>Use the comm to send and receive messages
+        <ul>
+            <li>Send a message through the comm<br>
+<pre lang="javascript">
+myComm.sendMessage(myMessage);
+</pre>
+            <li>Messages received to this comm will call the myMessageHandler function<br>
+<pre lang="javascript">
+function myMessageHandler(message, comm)
+{
+    /* Handle the message */
+}
+</pre>
+        </ul>
+</ol>
 
 
 PostComm API
@@ -84,137 +67,185 @@ PostComm API
 
 ### Origin Conversion Utility
 
-Takes a URL string. Returns the origin string for that URL. Expects valid URLs, could return a mangled string if given an invalid URL. The origin is everything from "http://" or "https://" to the end or the third slash (/), whichever comes first. Checking for expected origins is how the low-level postMessage API handles security.
+Params: URL string
+Returns: Origin string for input URL
 
-    var origin = PostComm.convertUrlToOrigin(url);
+*Could return a mangled string if given an invalid URL*
+
+```javascript
+var origin = postComm.convertUrlToOrigin(url);
+```
 
 
 ### Find Comm
 
-Takes an origin string and a contentWindow. Returns the matching comm if it already exists. Otherwise, it returns undefined.
+Params: Origin string and contentWindow for iframe or window
+Returns: Matching comm if it already exists, otherwise undefined
 
-    var comm = PostComm.findComm(origin, contentWindow);
+```javascript
+var comm = postComm.findComm(origin, contentWindow);
+```
 
 
 ### Engage
 
-Allow PostComm.js to start listening to and routing postMessage events (not called by default)
+PostComm.js will begin start listening to and routing postMessage events.
 
-    PostComm.engage();
+Params: None
+Returns: Nothing
+
+*Called once automatically when PostComm.js is loaded*
+
+```javascript
+postComm.engage();
+```
 
 
 ### Disengage
 
-Stops PostComm.js from listening to postMessage events. This only disconnects the listener, comms are still valid, they just won't send or receive messages until PostComm.js is re-engaged.
+PostComm.js will stop listening to postMessage events.
+This only disconnects the listener, the comms are still valid and unchanged.
+Call `postComm.engage()` to re-enable listening
 
-    PostComm.disengage();
+Params: None
+Returns: Nothing
+
+```javascript
+postComm.disengage();
+```
 
 
 ### Create Comm
 
-Takes an origin string, a contentWindow, and a message handler callback function. Returns a Comm object (see Comm Object API).
+Params: Origin string, contentWindow, and message handler callback function
+Returns: Comm object (see [Comm Object API section](#commobject))
 
-    var myComm = PostComm.createComm(childOrigin, childContentWindow, myMessageHandler);
+*The associated iframe or window must have already finished loading*
 
-*If contentWindow is not yet valid because the other page has not finished loading, the Comm object may not be created correctly.*
+```javascript
+var myComm = postComm.createComm(childOrigin, childContentWindow, myMessageHandler);
+```
 
 
 ### Create iFrame Comm Shortcut
 
-Able to use an iframe element to find the origin and contentWindow for you. Takes an iframe element ([the actual element, not a jQuery wrapper](http://stackoverflow.com/questions/47837/getting-the-base-element-from-a-jquery-object)) and a message handler callback function. Returns a Comm object (see Comm Object API).
+Params: Iframe element ([DOM element, not jQuery element](http://stackoverflow.com/questions/47837/getting-the-base-element-from-a-jquery-object)) and message handler callback function
+Returns: Comm object (see [Comm Object API section](#commobject))
 
-    var myIframeComm = PostComm.createIframeComm(iframeElement, myMessageHandler);
+*The associated iframe must have already finished loading*
 
-*If contentWindow is not yet valid because the other page has not finished loading, the Comm object may not be created correctly.*
+```javascript
+var myIframeComm = postComm.createIframeComm(iframeElement, myMessageHandler);
+```
 
 
 ### Create Parent Comm Shortcut
 
-Able to use window variables available when a page is opened as a child to find the origin and contentWindow for you. Takes a message handler callback function. Returns a Comm object (see Comm Object API).
+Params: Message handler callback function
+Returns: Comm object (see [Comm Object API section](#commobject))
 
-    var myParentComm = PostComm.createParentComm(myMessageHandler);
+*The associated parent (containing window) must have already finished loading*
 
-*If contentWindow is not yet valid because the other page has not finished loading, the Comm object may not be created correctly.*
-
-
-### NoConflict Mode
-
-Restores the original value of 'PostComm' to the window object. Returns the PostComm object.
-
-    var MyPostComm = PostComm.noConflict();
+```javascript
+var myParentComm = postComm.createParentComm(myMessageHandler);
+```
 
 
-### Replace Error Message Handler
+### noConflict Mode
 
-Allows you to receive error messages generated by PostComm and handle them as you desire (plug them into an existing error system, use console.log(), or ignore them entirely). The default function prints to console.log().
+Restores the original value of 'postComm' to the window object, yeilding a reference to be assigned a new variable name
 
-    PostComm.errorMessage = function(errorMessage) {
-        // Ignore error messages
-    };
+Params: None
+Returns: The postComm reference object
 
-At this time, only one error message can be generated (which is note necessarily an error): when PostComm is enabled and a postMessage event fires for which there is no associated Comm, PostComm will inform you of an "Unknown Comm".
+```javascript
+var myPostComm = postComm.noConflict();
+```
 
-
-
+<span id="commobject"></span>
 Comm Object API
 ---------------
 
-A Comm object maintains the unique connection to another iframe or window. It provides information about the connection, can send messages across the connection, and destroy itself.
-
-If a Comm is created with an invalid origin or contentWindow, the result is a null Comm. A null Comm does not get registered with PostComm's message routing system. Thus, it will never receive any messages. A null Comm has the same object signature, but provides read-only functionality. Specifically:
-
-* getOrigin() - returns the origin it was given
-* getContentWindow() - returns the contentWindow it was given
-* getMessageHandler() - returns the callback it was given
-* isValid() - returns false
-* sendMessage() - does nothing
-* destroy() - does nothing
+A comm object maintains the unique connection to another iframe or window. It provides information about the connection, can send messages across the connection, and destroy itself.
 
 
 ### Get Origin
 
-Returns the origin supplied at the Comm's creation.
+Params: None
+Returns: The comm's origin
 
-    var origin = comm.getOrigin();
+```javascript
+var origin = myComm.getOrigin();
+```
 
 
 ### Get contentWindow
 
-Returns the contentWindow supplied at the Comm's creation.
+Params: None
+Returns: The comm's contentWindow
 
-    var contentWindow = comm.getContentWindow();
+```javascript
+var contentWindow = myComm.getContentWindow();
+```
 
 
 ### Get Message Handler
 
-Returns the message handler callback function supplied at the Comm's creation.
+Params: None
+Returns: The comm's message handler callback function
 
-    var messageHandler = comm.getMessageHandler();
+```javascript
+var messageHandler = myComm.getMessageHandler();
+```
 
 
 ### Is Valid Comm
 
-Returns true if the origin and contentWindow are valid, and the Comm hasn't yet been destroyed.
+Params: None
+Returns: True if the comm has a valid connection, otherwise false
 
-    var isValidComm = comm.isValid();
+```javascript
+var isValidComm = myComm.isValid();
+```
 
 
 ### Send Message
 
-Takes a message object or string and sends it over the Comm's connection if the Comm is valid.
+Params: Message to be sent over the connection
+Returns: Nothing
 
-    comm.sendMessage(message);
+```javascript
+myComm.sendMessage(message);
+```
 
 
 ### Destroy Comm
 
-Unregisters the Comm from PostComm's managed Comm list and deactivates the Comm. After destroying a Comm
+Unregisters the comm from PostComm's message routing system and transforms the comm into a nullified comm.
 
-* getOrigin() and getContentWindow() will return undefined
-* getMessageHandler() will return a different function that does nothing
-* isValid() will always report false
-* sendMessage() and destroy() will do nothing
+Params: None
+Returns: Nothing
 
+```javascript
+myComm.destroy();
+```
+
+
+Nullified Comm Objects
+----------------------
+
+If a comm is destroyed, that comm object will be in a nullified state. A nullified comm is not registered with PostComm's message routing system, so its message handler callback function will never receive any messages.
+
+If a comm is created with an invalid origin or contentWindow, the result is also a nullified comm.
+
+A nullified comm has the same signature as a valid comm, but the results of each member function is different.
+
+* `getOrigin()` - returns undefined
+* `getContentWindow()` - returns undefined
+* `getMessageHandler()` - returns a noop function
+* `isValid()` - returns false
+* `sendMessage(message)` - does nothing
+* `destroy()` - does nothing
 
 
 Compatibility
@@ -250,14 +281,10 @@ You can [run the unit tests online](http://dwighthouse.github.io/PostComm.js/) w
 Future Work
 -----------
 
-As alluded to above, it is possible to attempt to create a Comm object before the iframe or window has finished loading. This can cause the contentWindow to be invalid and create a null Comm object, which is useless.
+As alluded to above, it is possible to attempt to create a comm object before the iframe or window has finished loading, creating an invalid (nullified) comm object.
 
 jQuery's load() function attached to an iframe appears to work well and is used in the unit tests. The loading of windows, however, cannot so easily be measured, especially if on another domain. The unit tests simply used a setTimeout() to give popups time to load.
 
 Creating a Comm to the parent window should almost never run into this problem, although it is conceivable.
 
 Thus, a helper script that assumes PostComm.js to be used on both sides of the connection could be used to negotiate the timing of the two Comms' creation by broadcasting and listening for existance messages every so often until both sides acknowledged the other. If such a script is made, it will be linked here.
-
-
-
-

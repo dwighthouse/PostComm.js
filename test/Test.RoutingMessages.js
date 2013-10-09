@@ -4,7 +4,6 @@
 
     module('Routing messages', {
         setup: function() {
-            PostComm.engage();
         },
         teardown: function() {
             if (comm1)
@@ -15,7 +14,6 @@
             {
                 comm2.destroy();
             }
-            PostComm.disengage();
         }
     });
 
@@ -63,8 +61,8 @@
                 return;
             }
 
-            comm1 = PostComm.createIframeComm(iframe1, frame1Handler);
-            comm2 = PostComm.createIframeComm(iframe2, frame2Handler);
+            comm1 = postComm.createIframeComm(iframe1, frame1Handler);
+            comm2 = postComm.createIframeComm(iframe2, frame2Handler);
 
             comm1.sendMessage('message1');
             comm2.sendMessage('message2');
@@ -129,8 +127,8 @@
                 return;
             }
 
-            comm1 = PostComm.createIframeComm(iframe1, frame1Handler);
-            comm2 = PostComm.createIframeComm(iframe2, frame2Handler);
+            comm1 = postComm.createIframeComm(iframe1, frame1Handler);
+            comm2 = postComm.createIframeComm(iframe2, frame2Handler);
 
             comm1.sendMessage('message1');
             comm2.sendMessage('message2');
