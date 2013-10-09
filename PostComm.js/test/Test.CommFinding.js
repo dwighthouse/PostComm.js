@@ -2,10 +2,8 @@
 
     module('Comm finding', {
         setup: function() {
-            PostComm.engage();
         },
         teardown: function() {
-            PostComm.disengage();
         }
     });
 
@@ -24,11 +22,11 @@
 
             clearTimeout(timeoutId);
 
-            var comm1 = PostComm.createIframeComm(iframe1, function() {});
-            var comm2 = PostComm.createIframeComm(iframe2, function() {});
+            var comm1 = postComm.createIframeComm(iframe1, function() {});
+            var comm2 = postComm.createIframeComm(iframe2, function() {});
 
-            equal(PostComm.findComm(comm2.getOrigin(), comm2.getContentWindow()), comm2, 'Found second comm');
-            equal(PostComm.findComm(comm1.getOrigin(), comm1.getContentWindow()), comm1, 'Found first comm');
+            equal(postComm.findComm(comm2.getOrigin(), comm2.getContentWindow()), comm2, 'Found second comm');
+            equal(postComm.findComm(comm1.getOrigin(), comm1.getContentWindow()), comm1, 'Found first comm');
 
             start();
 
@@ -66,21 +64,21 @@
 
             clearTimeout(timeoutId);
 
-            var comm1 = PostComm.createIframeComm(iframe1, function() {});
-            var comm2 = PostComm.createIframeComm(iframe2, function() {});
+            var comm1 = postComm.createIframeComm(iframe1, function() {});
+            var comm2 = postComm.createIframeComm(iframe2, function() {});
 
-            equal(PostComm.findComm(comm2.getOrigin(), comm2.getContentWindow()), comm2, 'Found second comm');
-            equal(PostComm.findComm(comm1.getOrigin(), comm1.getContentWindow()), comm1, 'Found first comm');
+            equal(postComm.findComm(comm2.getOrigin(), comm2.getContentWindow()), comm2, 'Found second comm');
+            equal(postComm.findComm(comm1.getOrigin(), comm1.getContentWindow()), comm1, 'Found first comm');
 
             comm1.destroy();
 
-            equal(PostComm.findComm(comm2.getOrigin(), comm2.getContentWindow()), comm2, 'Found second comm after first comm destroyed');
-            equal(PostComm.findComm(comm1.getOrigin(), comm1.getContentWindow()), undefined, 'Did not find first comm after first comm destroyed');
+            equal(postComm.findComm(comm2.getOrigin(), comm2.getContentWindow()), comm2, 'Found second comm after first comm destroyed');
+            equal(postComm.findComm(comm1.getOrigin(), comm1.getContentWindow()), undefined, 'Did not find first comm after first comm destroyed');
 
             comm2.destroy();
 
-            equal(PostComm.findComm(comm2.getOrigin(), comm2.getContentWindow()), undefined, 'Did not find second comm after first and second comm destroyed');
-            equal(PostComm.findComm(comm1.getOrigin(), comm1.getContentWindow()), undefined, 'Did not find first comm after first and second comm destroyed');
+            equal(postComm.findComm(comm2.getOrigin(), comm2.getContentWindow()), undefined, 'Did not find second comm after first and second comm destroyed');
+            equal(postComm.findComm(comm1.getOrigin(), comm1.getContentWindow()), undefined, 'Did not find first comm after first and second comm destroyed');
 
             start();        
         }
@@ -110,10 +108,10 @@
         $(iframe).load(function() {
             clearTimeout(timeoutId);
 
-            var comm1 = PostComm.createIframeComm(iframe, function() {});
-            var comm2 = PostComm.createComm(PostComm.convertUrlToOrigin('http://google.com/'), null, function() {});
+            var comm1 = postComm.createIframeComm(iframe, function() {});
+            var comm2 = postComm.createComm(postComm.convertUrlToOrigin('http://google.com/'), null, function() {});
 
-            equal(PostComm.findComm(comm2.getOrigin(), comm2.getContentWindow()), undefined, 'Did not find invalid comm, as expected');
+            equal(postComm.findComm(comm2.getOrigin(), comm2.getContentWindow()), undefined, 'Did not find invalid comm, as expected');
 
             start();
 

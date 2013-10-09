@@ -4,21 +4,20 @@
 
     module('Destroyed comms', {
         setup: function() {
-            PostComm.engage();
+
         },
         teardown: function() {
             if (comm)
             {
                 comm.destroy();
             }
-            PostComm.disengage();
         }
     });
 
     asyncTest('Destroyed comm changes state correctly', 9, function() {
         var iframe = createIframe('destroyable', sameDomainEchoPath);
 
-        var myOrigin = PostComm.convertUrlToOrigin(iframe.src);
+        var myOrigin = postComm.convertUrlToOrigin(iframe.src);
         var myContentWindow;
         var myHandler = function() {};
 
@@ -27,7 +26,7 @@
 
             myContentWindow = iframe.contentWindow;
 
-            comm = PostComm.createIframeComm(iframe, myHandler);
+            comm = postComm.createIframeComm(iframe, myHandler);
 
             var destroyFunction = comm.destroy;
 
@@ -80,7 +79,7 @@
         }
 
         $(iframe).load(function() {
-            comm = PostComm.createIframeComm(iframe, receiveMessage);
+            comm = postComm.createIframeComm(iframe, receiveMessage);
 
             comm.sendMessage('message1');
         });

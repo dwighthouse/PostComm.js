@@ -2,17 +2,15 @@
 
     module('Comm object', {
         setup: function() {
-            PostComm.engage();
         },
         teardown: function() {
-            PostComm.disengage();
         }
     });
 
     asyncTest('Maintains state', 3, function() {
         var iframe = createIframe('messageHandler', sameDomainEchoPath);
 
-        var myOrigin = PostComm.convertUrlToOrigin(iframe.src);
+        var myOrigin = postComm.convertUrlToOrigin(iframe.src);
         var myContentWindow;
         var myHandler = function() {};
 
@@ -21,7 +19,7 @@
 
             myContentWindow = iframe.contentWindow;
 
-            var comm = PostComm.createIframeComm(iframe, myHandler);
+            var comm = postComm.createIframeComm(iframe, myHandler);
 
             equal(comm.getOrigin(), myOrigin, 'Comm has the correct origin');
             equal(comm.getContentWindow(), myContentWindow, 'Comm has the correct contentWindow');
@@ -45,7 +43,7 @@
 
         $(iframe).load(function() {
             clearTimeout(timeoutId);
-            var comm = PostComm.createComm(PostComm.convertUrlToOrigin('asdf'), iframe.contentWindow, function() {});
+            var comm = postComm.createComm(postComm.convertUrlToOrigin('asdf'), iframe.contentWindow, function() {});
             ok(!comm.isValid(), 'PostComm Object is not valid with bad origin');
             start();
             comm.destroy();
@@ -58,7 +56,7 @@
     });
 
     test('isValid check (bad contentWindow)', 1, function() {
-        var comm = PostComm.createComm(PostComm.convertUrlToOrigin('http://google.com/'), null, function() {});
+        var comm = postComm.createComm(postComm.convertUrlToOrigin('http://google.com/'), null, function() {});
         ok(!comm.isValid(), 'PostComm Object is not valid with bad contentWindow');
         comm.destroy();
     });
@@ -68,7 +66,7 @@
 
         $(iframe).load(function() {
             clearTimeout(timeoutId);
-            var comm = PostComm.createIframeComm(iframe, function() {});
+            var comm = postComm.createIframeComm(iframe, function() {});
             ok(comm.isValid(), 'PostComm Object is valid with good origin and contentWindow');
             start();
             comm.destroy();

@@ -4,14 +4,14 @@
 
     module('Engage and disengage', {
         setup: function() {
-            PostComm.engage();
+            
         },
         teardown: function() {
             if (comm !== undefined)
             {
                 comm.destroy();
             }
-            PostComm.disengage();
+            postComm.engage();
         }
     });
 
@@ -19,10 +19,10 @@
         var iframe = createIframe('disengage', sameDomainEchoPath),
             defaultMessage = 'not message';
 
-        PostComm.disengage();
+        postComm.disengage();
 
         $(iframe).load(function() {
-            comm = PostComm.createIframeComm(iframe, function(message, comm) {
+            comm = postComm.createIframeComm(iframe, function(message, comm) {
                 defaultMessage = message;
             });
 
@@ -44,11 +44,11 @@
     asyncTest('Re-engage (disengage then engage)', 1, function() {
         var iframe = createIframe('reengage', sameDomainEchoPath);
 
-        PostComm.disengage();
-        PostComm.engage();
+        postComm.disengage();
+        postComm.engage();
 
         $(iframe).load(function() {
-            comm = PostComm.createIframeComm(iframe, function(message, comm) {
+            comm = postComm.createIframeComm(iframe, function(message, comm) {
                 clearTimeout(timeoutId);
                 equal(message, 'message', 'Echo iframe returned expected message');
                 start();

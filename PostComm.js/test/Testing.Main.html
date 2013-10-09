@@ -1,0 +1,97 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>PostComm.js Unit Tests (QUnit)</title>
+
+<style>
+html, html * { margin:0; padding:0; }
+body { font-family:sans-serif; padding:20px; }
+h2, h3, h4 { padding:10px 0 5px 0;}
+ul, ol { padding-left:30px; }
+p, ul, ol { margin-bottom:15px; }
+ul ul, ul ol, ol ol, ol ul { margin-bottom:0; }
+p + ul, p + ol { margin-top:-10px; }
+</style>
+<link href="http://code.jquery.com/qunit/qunit-1.12.0.css" rel="stylesheet">
+
+<div id="qunit"></div>
+<div id="qunit-fixture"></div>
+
+
+<h3>Setup &amp; Options</h3>
+
+<h4>Window-based Tests</h4>
+<p>Popup blockers will interfere with the window-based (popup) tests.</p>
+<p>Skip window tests by running opening this page's URL in a different window with the 'skipWindowTests' hash value.<br>
+<strong>Example:</strong> "http://example.com/PostComm/Testing.Main.html#skipWindowTests"</p>
+
+<h4>Testing on Other Domains</h4>
+<ol>
+    <li>Copy all files in this repository to a server
+        <ul>
+            <li>Must run from a server, not a local file (file://)
+            <li>Local servers can be easily created with <a href="http://www.wampserver.com/">WAMP</a> for Windows, <a href="http://www.mamp.info/">MAMP</a> for OS X, or <a href="http://www.apachefriends.org/en/xampp.html">XAMPP</a> for Linux
+        </ul>
+    <li>Navigate to the "Testing.Main.html" page
+</ol>
+
+<h4>Custom Cross-Domain Testing</h4>
+<p>The cross-domain tests may be run on a non-jsfiddle.net server</p>
+<ol>
+    <li>Copy all files in this repository to a server with a different domain
+    <li>Edit two variables in this file (Testing.Main.html)
+        <ul>
+            <li><strong>crossDomainEchoPath</strong> - change to the URL of Testing.Echo.html on the different domain
+            <li><strong>crossDomainChildPath</strong> - change to the URL of Testing.ChildHelper.html on the different domain
+        </ul>
+    <li>Navigate to the "Testing.Main.html" page on the original domain
+</ol>
+
+
+<script>
+// Test Options
+var postCommJsPath = '../PostComm.js';
+var sameDomainEchoPath = 'Testing.Echo.html';
+var crossDomainEchoPath = 'http://jsfiddle.net/4HE6M/1/show/';
+var sameDomainChildPath = 'Testing.ChildHelper.html';
+var crossDomainChildPath = 'http://jsfiddle.net/BRnuX/3/show/';
+var skipWindowTests = location.hash.substr(1) === 'skipWindowTests';
+</script>
+
+<script>
+    document.write('<script src="' + postCommJsPath + '"><\/script>');
+</script>
+
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+<script src="http://code.jquery.com/qunit/qunit-1.12.0.js"></script>
+<script>
+
+// Helper Utilities
+function typeOf(value) {
+    var s = typeof value;
+
+    return (s !== 'object')         ? s :
+           (!value)                 ? 'null' :
+           (value instanceof Array) ? 'array' : 'object';
+}
+
+function createWindow(id, url) {
+    return window.open(url, id, 'height=200,width=200');
+}
+
+function createIframe(id, url) {
+    $('#qunit-fixture').append('<iframe id="LocalIframe-' + id + '" src="' + url + '"></iframe>');
+    return $(('#LocalIframe-' + id))[0];
+}
+
+</script>
+
+<script src="Test.CoreRequirements.js"></script>
+<script src="Test.CommObject.js"></script>
+<script src="Test.CommFinding.js"></script>
+<script src="Test.EngageDisengage.js"></script>
+<script src="Test.ChildIframeCommunication.js"></script>
+<script src="Test.ChildWindowCommunication.js"></script>
+<script src="Test.RoutingMessages.js"></script>
+<script src="Test.DestroyedComms.js"></script>
+<script src="Test.ParentIframeCommunication.js"></script>
+<script src="Test.ParentWindowCommunication.js"></script>
