@@ -109,7 +109,7 @@
             clearTimeout(timeoutId);
 
             var comm1 = postComm.createIframeComm(iframe, function() {});
-            var comm2 = postComm.createComm(postComm.convertUrlToOrigin('http://google.com/'), null, function() {});
+            var comm2 = postComm.createComm('http://google.com/', null, function() {});
 
             equal(postComm.findComm(comm2.getOrigin(), comm2.getContentWindow()), undefined, 'Did not find invalid comm, as expected');
 

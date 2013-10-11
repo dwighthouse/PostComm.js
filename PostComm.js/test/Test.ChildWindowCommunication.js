@@ -22,7 +22,7 @@
 
             // No apparent way to reliably detect load event on cross-domain window, unlike cross-domain iframes, which respond to the jquery load() event
             setTimeout(function() {
-                comm = postComm.createComm(childWindow.location.origin, childWindow, function(message, comm) {
+                comm = postComm.createComm(sameDomainEchoPath, childWindow, function(message, comm) {
                     clearTimeout(timeoutId);
                     equal(message, 'message', 'Echo window returned expected message');
                     start();
@@ -44,7 +44,7 @@
 
             // No apparent way to reliably detect load event on cross-domain window, unlike cross-domain iframes, which respond to the jquery load() event
             setTimeout(function() {
-                comm = postComm.createComm(postComm.convertUrlToOrigin(crossDomainEchoPath), childWindow, function(message, comm) {
+                comm = postComm.createComm(crossDomainEchoPath, childWindow, function(message, comm) {
                     clearTimeout(timeoutId);
                     equal(message, 'message', 'Echo window returned expected message');
                     start();

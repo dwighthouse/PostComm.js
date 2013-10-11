@@ -8,15 +8,16 @@ PostComm.js is a javascript microlibrary designed to handle the security and rou
 Features
 --------
 * Creates persistent 'comm' objects that represent the connection across the iframe or window barrier
-* Handles the origin-based security for you
-* Only creates one comm per iframe or window, preventing duplication
-* Send and receive postMessage events to any number of iframes and windows
-* Send and receive postMessage events cross-domain
+* Secure communication only, origin and contentWindow always checked
+* Cross-domain or same-origin
+* Only creates one comm per iframe, window, or parent page, preventing duplication
+* Send and receive message events to any number of iframes and windows
+* Pinging system to ensure that a connection is good before sending messages
 * noConflict mode
 * No dependancies
-* Tiny (under 3k minified)
+* Tiny (around 3.5k minified)
 * AMD compliant
-* Creates a single postMessage event binding, not one per comm
+* Only creates a single event listener on the window object
 * Does not usurp control over postMessage events, other code can add its own postMessage event handlers
 * Globally connect and disconnect all connections at any time
 
@@ -26,8 +27,7 @@ Features
 What PostComm.js is Not
 -----------------------
 * PostComm.js is not a general purpose postMessage compatibility shim for older browsers (try [Porthole](http://ternarylabs.github.io/porthole/) instead)
-* Using PostComm.js for a single connection is overkill. Though it can handle a single connection, it is primarily designed for communication with dozens of iframes or windows without interference
-* PostComm can only communicate between iframes and windows opened by the page in question. It cannot communicate with other windows or tabs the user opened, even if on the same domain. There is a way to do this, however, through use of the localStorage API (try [Intercom.js](https://github.com/diy/intercom.js/))
+* PostComm can only communicate between iframes and windows (and the parent page if it is a child page) opened by the page in question, or with the parent of the page that opened the page. It cannot communicate with other windows or tabs the user opened, even if on the same domain. There is a way to do this, however, through use of the localStorage API (try [Intercom.js](https://github.com/diy/intercom.js/))
 
 
 
@@ -36,7 +36,7 @@ Basic Usage
 
 <ol>
     <li>Download the <a href="https://raw.github.com/dwighthouse/PostComm.js/master/PostComm.js">PostComm.js</a> (or <a href="https://raw.github.com/dwighthouse/PostComm.js/master/PostComm.min.js">PostComm.min.js</a>) file and place it on the server
-    <li>Link the file in your source.<br>
+    <li>Link the file in the source.<br>
 <pre lang="html">
 &lt;script src="PostComm.js"&gt;&lt;/script&gt;
 </pre>
@@ -44,7 +44,17 @@ Basic Usage
 <pre lang="javascript">
 var myComm = postComm.createComm(childOrigin, childContentWindow, myMessageHandler);
 </pre>
-<em>The child iframe or window must already have already finished loading</em>
+    <li>For connecting to an iframe, window, or parent page that also uses PostComm.js, optionally ping the comm to ensure a known good connection
+<pre lang="javascript">
+function onSuccess(comm) {
+    /* The comm is known to be connected */
+}
+function onFailure(comm) {
+    /* The comm did not respond appropriately to the ping, the other page may still be loading */
+}
+
+myComm.ping(onSuccess, onFailure);
+</pre>
     <li>Use the comm to send and receive messages
         <ul>
             <li>Send a message through the comm<br>
@@ -53,8 +63,7 @@ myComm.sendMessage(myMessage);
 </pre>
             <li>Messages received to this comm will call the myMessageHandler function<br>
 <pre lang="javascript">
-function myMessageHandler(message, comm)
-{
+function myMessageHandler(message, comm) {
     /* Handle the message */
 }
 </pre>
@@ -65,24 +74,12 @@ function myMessageHandler(message, comm)
 PostComm API
 ------------
 
-### Origin Conversion Utility
-
-Params: URL string
-Returns: Origin string for input URL
-
-*Could return a mangled string if given an invalid URL*
-
-```javascript
-var origin = postComm.convertUrlToOrigin(url);
-```
-
-
 ### Find Comm
 
-Params: Origin string and contentWindow for iframe or window
-Returns: Matching comm if it already exists, otherwise undefined
+ * <strong>Params</strong>: Origin string and contentWindow for iframe, window, or parent page
+ * <strong>Returns</strong>: Matching comm if it already exists, otherwise undefined
 
-```javascript
+```
 var comm = postComm.findComm(origin, contentWindow);
 ```
 
@@ -91,12 +88,12 @@ var comm = postComm.findComm(origin, contentWindow);
 
 PostComm.js will begin start listening to and routing postMessage events.
 
-Params: None
-Returns: Nothing
+ * <strong>Params</strong>: None
+ * <strong>Returns</strong>: Nothing
 
 *Called once automatically when PostComm.js is loaded*
 
-```javascript
+```
 postComm.engage();
 ```
 
@@ -107,46 +104,42 @@ PostComm.js will stop listening to postMessage events.
 This only disconnects the listener, the comms are still valid and unchanged.
 Call `postComm.engage()` to re-enable listening
 
-Params: None
-Returns: Nothing
+ * <strong>Params</strong>: None
+ * <strong>Returns</strong>: Nothing
 
-```javascript
+```
 postComm.disengage();
 ```
 
 
 ### Create Comm
 
-Params: Origin string, contentWindow, and message handler callback function
-Returns: Comm object (see [Comm Object API section](#commobject))
+ * <strong>Params</strong>: Origin string, contentWindow, and message handler callback function
+ * <strong>Returns</strong>: Comm object (see [Comm Object API section](#commobject))
 
-*The associated iframe or window must have already finished loading*
+*Creating a comm object for a window created with `window.open()` requires the use of `createComm()`*
 
-```javascript
+```
 var myComm = postComm.createComm(childOrigin, childContentWindow, myMessageHandler);
 ```
 
 
 ### Create iFrame Comm Shortcut
 
-Params: Iframe element ([DOM element, not jQuery element](http://stackoverflow.com/questions/47837/getting-the-base-element-from-a-jquery-object)) and message handler callback function
-Returns: Comm object (see [Comm Object API section](#commobject))
+ * <strong>Params</strong>: Iframe element ([DOM element, not jQuery element](http://stackoverflow.com/questions/47837/getting-the-base-element-from-a-jquery-object)) and message handler callback function
+ * <strong>Returns</strong>: Comm object (see [Comm Object API section](#commobject))
 
-*The associated iframe must have already finished loading*
-
-```javascript
+```
 var myIframeComm = postComm.createIframeComm(iframeElement, myMessageHandler);
 ```
 
 
 ### Create Parent Comm Shortcut
 
-Params: Message handler callback function
-Returns: Comm object (see [Comm Object API section](#commobject))
+ * <strong>Params</strong>: Message handler callback function
+ * <strong>Returns</strong>: Comm object (see [Comm Object API section](#commobject))
 
-*The associated parent (containing window) must have already finished loading*
-
-```javascript
+```
 var myParentComm = postComm.createParentComm(myMessageHandler);
 ```
 
@@ -155,10 +148,10 @@ var myParentComm = postComm.createParentComm(myMessageHandler);
 
 Restores the original value of 'postComm' to the window object, yeilding a reference to be assigned a new variable name
 
-Params: None
-Returns: The postComm reference object
+ * <strong>Params</strong>: None
+ * <strong>Returns</strong>: The postComm reference object
 
-```javascript
+```
 var myPostComm = postComm.noConflict();
 ```
 
@@ -166,55 +159,99 @@ var myPostComm = postComm.noConflict();
 Comm Object API
 ---------------
 
-A comm object maintains the unique connection to another iframe or window. It provides information about the connection, can send messages across the connection, and destroy itself.
+A comm object maintains the unique connection to another iframe, window, or parent page. It provides information about the connection, can send messages across the connection, and destroy itself.
 
 
-### Get Origin
+### Get origin
 
-Params: None
-Returns: The comm's origin
+ * <strong>Params</strong>: None
+ * <strong>Returns</strong>: The comm's origin
 
-```javascript
+```
 var origin = myComm.getOrigin();
 ```
 
 
 ### Get contentWindow
 
-Params: None
-Returns: The comm's contentWindow
+ * <strong>Params</strong>: None
+ * <strong>Returns</strong>: The comm's contentWindow
 
-```javascript
+```
 var contentWindow = myComm.getContentWindow();
 ```
 
 
 ### Get Message Handler
 
-Params: None
-Returns: The comm's message handler callback function
+ * <strong>Params</strong>: None
+ * <strong>Returns</strong>: The comm's message handler callback function
 
-```javascript
+```
 var messageHandler = myComm.getMessageHandler();
 ```
 
 
 ### Is Valid Comm
 
-Params: None
-Returns: True if the comm has a valid connection, otherwise false
+ * <strong>Params</strong>: None
+ * <strong>Returns</strong>: True if the comm has a valid connection, otherwise false
 
-```javascript
+*A valid comm is not necessarily connected. The other page may still be loading or its own comm back to the parent may not be set up yet. Use the Ping method to ensure a good connection.*
+
+```
 var isValidComm = myComm.isValid();
 ```
 
 
+### Is Connected
+
+ * <strong>Params</strong>: None
+ * <strong>Returns</strong>: True if the comm has recieved any message, proving the connection is real
+
+```
+var isConnectedComm = myComm.isConnected();
+```
+
+*Can become false if `ping()` is called, but will become true again after another message is received*
+
+
+### Ping
+
+For comms with PostComm.js in use by both sides of the connection, pinging tests and confirms the connection without sending unnecessary noise to the comm's message handler callback function.
+
+It is recommended to ping a comm before attempting to send messages through it. Pinging is an alternative to using setTimeout, window.load, and other possibly inadequate methods of ensuring a good connection.
+
+Any page with PostComm.js enabled will echo pings back to the sender, confirming the connection for both sides. PostComm.js recognizes echoed pings and will not treat them as normal messages, so they will not propogate to the comm's message handler callback function.
+
+Whether triggered by a ping or a normal message, when a message is received, the `onSuccess()` callback is called. The `onSuccess()` function can only be called once per call to `ping()`.
+
+Pinging a comm fires a ping message to the other page several times at exponentially increasing intervals, up to a maximum timeout length. If the timeout is reached, the `onFailure(comm)` callback is called.
+
+ * <strong>Params</strong>: onSuccess and onFailure callback functions
+ * <strong>Returns</strong>: Nothing
+
+<pre language="javasript">
+function onSuccess(comm) {
+    /* The comm is known to be connected */
+}
+function onFailure(comm) {
+    /* The comm did not respond appropriately to the ping, the other page may still be loading */
+}
+
+myComm.ping(onSuccess, onFailure);
+</pre>
+
+*Both onSuccess and onFailure functions pass the comm object when called*
+
+
+
 ### Send Message
 
-Params: Message to be sent over the connection
-Returns: Nothing
+ * <strong>Params</strong>: Message to be sent over the connection
+ * <strong>Returns</strong>: Nothing
 
-```javascript
+```
 myComm.sendMessage(message);
 ```
 
@@ -223,10 +260,10 @@ myComm.sendMessage(message);
 
 Unregisters the comm from PostComm's message routing system and transforms the comm into a nullified comm.
 
-Params: None
-Returns: Nothing
+ * <strong>Params</strong>: None
+ * <strong>Returns</strong>: Nothing
 
-```javascript
+```
 myComm.destroy();
 ```
 
@@ -244,28 +281,10 @@ A nullified comm has the same signature as a valid comm, but the results of each
 * `getContentWindow()` - returns undefined
 * `getMessageHandler()` - returns a noop function
 * `isValid()` - returns false
+* `isConnected()` - returns false
+* `ping(onSuccess, onFailure)` - does nothing
 * `sendMessage(message)` - does nothing
 * `destroy()` - does nothing
-
-
-Compatibility
--------------
-
-These browsers successfully passed all unit tests
-
-* Google Chrome 28
-* Mozilla Firefox 21
-* Opera 15
-* Safari 6.0.5
-
-
-### Internet Explorer
-
-* Internet Explorer 9 successfully passed all except the window-based tests (known issue)
-* Internet Explorer 9 cannot send object messages, but can send string messages (known issue)
-* Check this [compatibility chart](http://caniuse.com/#search=postmessage) for more information
-
-If you want general postMessage-style cross-domain iframe communication for older browsers, but no routing capabilities, try [Porthole](http://ternarylabs.github.io/porthole/).
 
 
 
@@ -273,18 +292,36 @@ If you want general postMessage-style cross-domain iframe communication for olde
 Unit Tests
 ----------
 
-You can [run the unit tests online](http://dwighthouse.github.io/PostComm.js/) without downloading the code or setting up your own servers. If you want to run the tests yourself, see [instructions on the test page](http://dwighthouse.github.io/PostComm.js/PostComm.js/test/Testing.Main.html).
+[Run the unit tests online](http://dwighthouse.github.io/PostComm.js/) without downloading the code or setting up servers. Instructions to manually run tests can be found on the [test page](http://dwighthouse.github.io/PostComm.js/PostComm.js/test/Testing.Main.html) itself.
 
 
 
 
-Future Work
------------
+Compatibility
+-------------
 
-As alluded to above, it is possible to attempt to create a comm object before the iframe or window has finished loading, creating an invalid (nullified) comm object.
+These browsers successfully passed all unit tests
 
-jQuery's load() function attached to an iframe appears to work well and is used in the unit tests. The loading of windows, however, cannot so easily be measured, especially if on another domain. The unit tests simply used a setTimeout() to give popups time to load.
+* Google Chrome 30
+* Mozilla Firefox 24
+* Opera 15
+* Safari 6.0.5
 
-Creating a Comm to the parent window should almost never run into this problem, although it is conceivable.
 
-Thus, a helper script that assumes PostComm.js to be used on both sides of the connection could be used to negotiate the timing of the two Comms' creation by broadcasting and listening for existance messages every so often until both sides acknowledged the other. If such a script is made, it will be linked here.
+### Internet Explorer
+
+Internet Explorer was not tested recently, but tests with previous versions of PostComm.js yeilded these results:
+
+* Internet Explorer 9 successfully passed all except the window-based tests (known issue)
+* Internet Explorer 9 cannot send object messages, but can send string messages (known issue)
+* Check this [compatibility chart](http://caniuse.com/#search=postmessage) for more information
+
+Use [Porthole](http://ternarylabs.github.io/porthole/) for general postMessage-style cross-domain iframe communication for older browsers, but no routing capabilities.
+
+
+
+
+Known Issues
+------------
+
+There may be exceedingly rare conditions in which a message can be sent from a window or iframe that is then closed before the parent page has a chance to process the message. After attempting to duplicate the conditions for a unit test and failing, I assume that it is too rare an occurance to worry about.
