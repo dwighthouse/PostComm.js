@@ -9,13 +9,14 @@ Features
 --------
 * Creates persistent 'comm' objects that represent the connection across the iframe or window barrier
 * Secure communication only, origin and contentWindow always checked
-* Cross-domain or same-origin
+* Cross-domain or same-origin, works the same
 * Only creates one comm per iframe, window, or parent page, preventing duplication
 * Send and receive message events to any number of iframes and windows
 * Pinging system to ensure that a connection is good before sending messages
 * noConflict mode
 * No dependancies
 * Tiny (around 3.5k minified)
+* Fully unit tested
 * AMD compliant
 * Only creates a single event listener on the window object
 * Does not usurp control over postMessage events, other code can add its own postMessage event handlers
@@ -42,7 +43,7 @@ Basic Usage
 </pre>
     <li>Create a comm object<br>
 <pre lang="javascript">
-var myComm = postComm.createComm(childOrigin, childContentWindow, myMessageHandler);
+var myComm = postComm.createComm(childUrl, childContentWindow, myMessageHandler);
 </pre>
     <li>For connecting to an iframe, window, or parent page that also uses PostComm.js, optionally ping the comm to ensure a known good connection
 <pre lang="javascript">
@@ -76,11 +77,11 @@ PostComm API
 
 ### Find Comm
 
- * <strong>Params</strong>: Origin string and contentWindow for iframe, window, or parent page
+ * <strong>Params</strong>: URL string and contentWindow for iframe, window, or parent page
  * <strong>Returns</strong>: Matching comm if it already exists, otherwise undefined
 
 ```
-var comm = postComm.findComm(origin, contentWindow);
+var comm = postComm.findComm(url, contentWindow);
 ```
 
 
@@ -114,13 +115,13 @@ postComm.disengage();
 
 ### Create Comm
 
- * <strong>Params</strong>: Origin string, contentWindow, and message handler callback function
+ * <strong>Params</strong>: Url string, contentWindow, and message handler callback function
  * <strong>Returns</strong>: Comm object (see [Comm Object API section](#commobject))
 
 *Creating a comm object for a window created with `window.open()` requires the use of `createComm()`*
 
 ```
-var myComm = postComm.createComm(childOrigin, childContentWindow, myMessageHandler);
+var myComm = postComm.createComm(childUrl, childContentWindow, myMessageHandler);
 ```
 
 
@@ -163,6 +164,8 @@ A comm object maintains the unique connection to another iframe, window, or pare
 
 
 ### Get origin
+
+The origin is the base part of the URL without the trailing slash that is used for security on postMessage events. If the URL is `https://github.com/dwighthouse/PostComm.js`, the origin would be `https://github.com`
 
  * <strong>Params</strong>: None
  * <strong>Returns</strong>: The comm's origin
@@ -273,7 +276,7 @@ Nullified Comm Objects
 
 If a comm is destroyed, that comm object will be in a nullified state. A nullified comm is not registered with PostComm's message routing system, so its message handler callback function will never receive any messages.
 
-If a comm is created with an invalid origin or contentWindow, the result is also a nullified comm.
+If a comm is created with an invalid URL or contentWindow, the result is also a nullified comm.
 
 A nullified comm has the same signature as a valid comm, but the results of each member function is different.
 
