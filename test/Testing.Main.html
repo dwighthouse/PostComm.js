@@ -42,18 +42,27 @@ p + ul, p + ol { margin-top:-10px; }
         <ul>
             <li><strong>crossDomainEchoPath</strong> - change to the URL of Testing.Echo.html on the different domain
             <li><strong>crossDomainChildPath</strong> - change to the URL of Testing.ChildHelper.html on the different domain
+            <li><strong>crossDomainChildPingPath</string> - change to the URL of Testing.PingChildHelper.html on the different domain
         </ul>
     <li>Navigate to the "Testing.Main.html" page on the original domain
 </ol>
 
 
 <script>
+
+var sameDomainPath = (window.location.href).split('/').slice(0, -1).join('/') + '/';
+
 // Test Options
 var postCommJsPath = '../PostComm.js';
-var sameDomainEchoPath = 'Testing.Echo.html';
+var sameDomainEchoPath = sameDomainPath + 'Testing.Echo.html';
+var sameDomainChildPath = sameDomainPath + 'Testing.ChildHelper.html';
+var sameDomainChildPingPath = sameDomainPath + 'Testing.PingChildHelper.html';
+var sameDomainChildPingPath2 = sameDomainPath + 'Testing.PingChildHelper2.html';
+
 var crossDomainEchoPath = 'http://jsfiddle.net/4HE6M/2/show/';
-var sameDomainChildPath = 'Testing.ChildHelper.html';
 var crossDomainChildPath = 'http://jsfiddle.net/BRnuX/5/show/';
+var crossDomainChildPingPath = 'http://jsfiddle.net/naS5j/1/show/';
+
 var skipWindowTests = location.hash.substr(1) === 'skipWindowTests';
 </script>
 
@@ -83,6 +92,18 @@ function createIframe(id, url) {
     return $(('#LocalIframe-' + id))[0];
 }
 
+function convertUrlToOrigin(url) {
+    var start = url.indexOf('//') + 2,
+        thirdSlashIndex = url.indexOf('/', start); // Safe: indexOf with start out of bounds === -1
+
+    if (thirdSlashIndex !== -1)
+    {
+        return url.substr(0, thirdSlashIndex);
+    }
+
+    return url;
+}
+
 </script>
 
 <script src="Test.CoreRequirements.js"></script>
@@ -95,3 +116,4 @@ function createIframe(id, url) {
 <script src="Test.DestroyedComms.js"></script>
 <script src="Test.ParentIframeCommunication.js"></script>
 <script src="Test.ParentWindowCommunication.js"></script>
+<script src="Test.Ping.js"></script>

@@ -1,0 +1,27 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>PostComm.js Unit Test Ping Child Helper 2</title>
+
+
+<p>Immediately pings the parent iframe or window using PostComm.js, but does not send its status to the parent.</p>
+
+
+<script src="../PostComm.js"></script>
+
+<script>
+
+(function() {
+    var comm = postComm.createParentComm(function() {});
+
+    function onSuccess() {
+        // Do Nothing
+    }
+
+    function onFailure() {
+        // Do Nothing
+    }
+
+    comm.ping(onSuccess, onFailure);
+}());
+
+</script>

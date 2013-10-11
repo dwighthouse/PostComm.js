@@ -10,7 +10,7 @@
     asyncTest('Maintains state', 3, function() {
         var iframe = createIframe('messageHandler', sameDomainEchoPath);
 
-        var myOrigin = postComm.convertUrlToOrigin(iframe.src);
+        var myOrigin = convertUrlToOrigin(iframe.src);
         var myContentWindow;
         var myHandler = function() {};
 
@@ -43,7 +43,7 @@
 
         $(iframe).load(function() {
             clearTimeout(timeoutId);
-            var comm = postComm.createComm(postComm.convertUrlToOrigin('asdf'), iframe.contentWindow, function() {});
+            var comm = postComm.createComm('asdf', iframe.contentWindow, function() {});
             ok(!comm.isValid(), 'PostComm Object is not valid with bad origin');
             start();
             comm.destroy();
@@ -56,7 +56,7 @@
     });
 
     test('isValid check (bad contentWindow)', 1, function() {
-        var comm = postComm.createComm(postComm.convertUrlToOrigin('http://google.com/'), null, function() {});
+        var comm = postComm.createComm('http://google.com/', null, function() {});
         ok(!comm.isValid(), 'PostComm Object is not valid with bad contentWindow');
         comm.destroy();
     });

@@ -15,20 +15,33 @@
     ////////////////////////////////////////////////////////////
     var addEvent,
         removeEvent,
-        nsPostComm = window.postComm,
+        uniqueWindowId,
+        pingMessagePrefix = 'postComm_ping_',
+        pingMessageRegex = new RegExp('^' + pingMessagePrefix + '-?\\d+$', ''),
+        postCommNamespace = window.postComm,
         commStore = {},
         api = {};
 
     // Structure of commStore:
     // {
     //     origin1: [
-    //         comm1, // associated with origin1 and contentWindow1
-    //         comm2, // associated with origin1 and contentWindow2
+    //         {
+    //             comm1,   // associated with origin1 and contentWindow1
+    //             details1 // associated with comm1
+    //         },
+    //         {
+    //             comm2,   // associated with origin1 and contentWindow2
+    //             details2 // associated with comm2
+    //         },
     //         ...
     //     ],
     //     origin2: [
-    //         comm3, // associated with origin2 and contentWindow3
-    //     ]
+    //         {
+    //             comm3,   // associated with origin2 and contentWindow3
+    //             details3 // associated with comm3
+    //         },
+    //         ...
+    //     ],
     //     ...
     // }
 
@@ -75,6 +88,22 @@
         };
     }());
 
+    // http://stackoverflow.com/questions/7616461/generate-a-hash-from-string-in-javascript-jquery
+    // http://jsperf.com/hashing-strings/20
+    function hashString(string) {
+        var hash = 0,
+            index,
+            length = string.length;
+
+        for (index = 0; index < length; index += 1)
+        {
+            hash = hash * 31 + string.charCodeAt(index);
+            hash = Math.floor(hash);
+        }
+
+        return hash;
+    }
+
     function find(array, callback) {
         var index,
             length = array.length,
@@ -93,6 +122,10 @@
         // Not found, returns undefined
     }
 
+    function timeNow() {
+        return +(new Date()); // Coerse date into milliseconds since epoch
+    }
+
     function maybeMakeProperty(object, key, defaultValue) {
         // If the key already exists, there is no effect, as the value of an object's unassigned key is undefined
         object[key] = object.hasOwnProperty(key) ? object[key] : defaultValue;
@@ -102,8 +135,8 @@
         return (/^https?:\/\//).test(origin);
     }
 
-    function isValidSource(source) {
-        return source && source.window && source === source.window;
+    function isValidContentWindow(contentWindow) {
+        return !!contentWindow && !!contentWindow.window && contentWindow === contentWindow.window;
     }
 
     // Do nothing, return undefined
@@ -121,42 +154,167 @@
         return url;
     }
 
-    function getParentContentWindow() {
-        return window.opener || window.parent;
-    }
 
-    function getParentOrigin() {
-        var referrer = (window.document || {}).referrer;
-        return referrer ? convertUrlToOrigin(referrer) : [].u; // undefined
-    }
+    ////////////////////////////////////////////////////////////
+    // Make unique identifier for this window
+    ////////////////////////////////////////////////////////////
+
+    // Needs to be unique relative to other windows/iframes
+    //   Even if another window/iframe was opened in the same moment or the same page was opened
+    //   In effect, making Math.random() more random by mixing in things that cannot be the same across different windows
+    (function() {
+        var currentTime = String(timeNow()),
+            randomNumber = String(Math.random()),
+            referrerUrl = String((window.document || {}).referrer);
+
+        // Avoid scientific notation
+        uniqueWindowId = (hashString(currentTime + '-' + randomNumber + '-' + referrerUrl) % 1000000000000000000000).toString();
+    }());
 
 
     ////////////////////////////////////////////////////////////
     // Finding Things
     ////////////////////////////////////////////////////////////
 
-    function findComm(origin, contentWindow) {
-        var comms = commStore[origin] || [];
+    function findCommObject(origin, contentWindow) {
+        var commObjects = commStore[origin] || [];
 
-        return find(comms, function(comm) {
-            return comm.getContentWindow() === contentWindow;
+        return find(commObjects, function(commObject) {
+            return commObject.details.contentWindow === contentWindow;
         });
+    }
+
+    function findComm(origin, contentWindow) {
+        var commObject = findCommObject(origin, contentWindow);
+
+        return (commObject || {}).comm;
     }
 
 
     ////////////////////////////////////////////////////////////
-    // Handling Messages
+    // Sending Messages
+    ////////////////////////////////////////////////////////////
+
+    function sendMessage(origin, contentWindow, message) {
+        // Prevent sending message to recently deleted iframe or window
+        //   Be sure to nullify comms before removing their corresponding iframe or window
+        if (!contentWindow)
+        {
+            return;
+        }
+
+        // Chrome, Safari, and Opera will trigger an error here for cross-domain iframe calls if the iframe has not yet loaded
+        //   "Unable to post message to [iframe origin]. Recipient has origin [parent origin]."
+        //   So far as I can tell, this is unavoidable and uncatchable, but it does not cause harm either
+        //   This is why the ping system uses the wildcard origin
+        contentWindow.postMessage(message, origin);
+    }
+
+
+    ////////////////////////////////////////////////////////////
+    // Ping Messages
+    ////////////////////////////////////////////////////////////
+
+    function isPingMessage(message) {
+        var isString = typeof message === 'string';
+        return isString && pingMessageRegex.test(message);
+    }
+
+    function isPingFromHere(message) {
+        return isPingMessage(message) && message.replace(pingMessagePrefix, '') === uniqueWindowId;
+    }
+
+    function messageReceivedSuccessly(details) {
+        var successFunction = details.pingSuccess;
+
+        details.isConnected = true;
+        details.pingSuccess = noop;
+        details.pingFailure = noop;
+
+        // Could be a noop if the user had not tried to ping, expected and safe
+        successFunction(findComm(details.origin, details.contentWindow));
+    }
+
+    function pingFailure(details) {
+        var failureFunction = details.pingFailure;
+
+        details.isConnected = false;
+        details.pingSuccess = noop;
+        details.pingFailure = noop;
+
+        // Could be a noop if the user did not supply a failure function
+        failureFunction(findComm(details.origin, details.contentWindow));
+    }
+
+    function tryPing(details) {
+        var tryStartTime = timeNow(),
+            tryMaxInterval = 5000, // 5 seconds max before failure
+            tryTimeSeparation = 1, // in milliseconds
+            pingMessage = pingMessagePrefix + uniqueWindowId;
+
+        function pinger() {
+            // Failed, stop
+            if (timeNow() - tryStartTime >= tryMaxInterval)
+            {
+                pingFailure(details);
+                return;
+            }
+
+            // Succeeded, stop
+            if (details.isConnected)
+            {
+                return;
+            }
+
+            // Send ping messages via the wildcard origin
+            //   Normally a security risk, we are only sending these messages to determine whether the other page can respond, not actually sending meaningful data
+            //   By doing this, we avoid an uncatchable error in Chrome, Opera, and Safari.
+            //   Bug report filed (but not public): https://code.google.com/p/chromium/issues/detail?id=306331
+            //   Example case: http://jsfiddle.net/Znq5a/4/
+            sendMessage('*', details.contentWindow, pingMessage);
+
+            // Decrease the speed of tries the more their are, maxing out at 0.5 seconds per try
+            //   Sequence goes like this: 1, 2, 4, 8, 16, 32, 64, 128, 256, 500, 500, 500, ...
+            tryTimeSeparation = Math.min(tryTimeSeparation * 2, 500);
+
+            window.setTimeout(pinger, tryTimeSeparation);
+        }
+
+        pinger();
+    }
+
+
+    ////////////////////////////////////////////////////////////
+    // Receiving Messages
     ////////////////////////////////////////////////////////////
 
     function onMessageReceived(e) {
-        var comm = findComm(e.origin, e.source);
+        var message = e.data,
+            isPing = isPingMessage(message),
+            isOriginalPing = isPingFromHere(message),
+            commObject = findCommObject(e.origin, e.source);
+
+        if (isPing && !isOriginalPing)
+        {
+            // Echo ping messages, even if there is no associated comm
+            //   But do not echo pings originating at this window, or it could cause a feedback loop
+            sendMessage(e.origin, e.source, message);
+        }
+
+        // Because we received a message, any message, this comm must now be connected
+        if (commObject)
+        {
+            messageReceivedSuccessly(commObject.details);
+        }
+
+        // Only fire message handler callback function on non-ping messages
+        if (commObject && !isPing)
+        {
+            commObject.details.messageHandler(message, commObject.comm);
+        }
 
         // No found CommObject is not necessarily an error
         // PostComm.js does not usurp other message event handlers
-        if (comm)
-        {
-            (comm.getMessageHandler())(e.data, comm);
-        }
     }
 
 
@@ -181,33 +339,34 @@
     // Creating and Destroying Comms
     ////////////////////////////////////////////////////////////
 
-    function registerComm(comm) {
-        var origin = comm.getOrigin();
+    function registerComm(comm, details) {
+        var origin = details.origin;
 
         // Add origin if does not exist
         maybeMakeProperty(commStore, origin, []);
 
-        commStore[origin].push(comm);
-
-        return comm;
+        commStore[origin].push({
+            comm: comm,
+            details: details
+        });
     }
 
-    function unregisterComm(comm) {
-        var origin = comm.getOrigin(),
-            contentWindow = comm.getContentWindow(),
-            comms = commStore[origin] || [];
+    function unregisterComm(details) {
+        var origin = details.origin,
+            contentWindow = details.contentWindow,
+            commObjects = commStore[origin] || [];
 
-        // Abusing the find function to get index of matching contentWindow
-        find(comms, function(queriedComm, index) {
-            if (queriedComm.getContentWindow() === contentWindow)
+        // Abusing the find function to get index of commObject with matching contentWindow
+        find(commObjects, function(commObject, index) {
+            if (commObject.details.contentWindow === contentWindow)
             {
-                comms.splice(index, 1);
+                commObjects.splice(index, 1);
                 return true; // Stop searching early
             }
         });
 
         // No remaining comms on this origin, remove the key
-        if (comms.length === 0)
+        if (commObjects.length === 0)
         {
             delete commStore[origin];
         }
@@ -216,21 +375,40 @@
     function nullifyComm(comm) {
         comm.getOrigin = noop;
         comm.getContentWindow = noop;
-        comm.getMessageHandler = function() {
-            return noop;
-        };
-        comm.isValid = function() {
-            return false;
-        };
+        comm.getMessageHandler = function() { return noop; };
+        comm.isValid = function() { return false; };
+        comm.isConnected = function() { return false; };
+        comm.ping = noop;
         comm.sendMessage = noop;
         comm.destroy = noop;
-
-        return comm;
     }
 
-    function createComm(origin, contentWindow, messageHandler) {
-        var existingComm = findComm(origin, contentWindow),
-            isValid = isValidOrigin(origin) && isValidSource(contentWindow),
+    function setupComm(comm, details) {
+        comm.getOrigin = function() { return details.origin; };
+        comm.getContentWindow = function() { return details.contentWindow; };
+        comm.getMessageHandler = function() { return details.messageHandler; };
+        comm.isValid = function() { return details.isValid; };
+        comm.isConnected = function() { return details.isConnected; };
+        comm.ping = function(onSuccess, onFailure) {
+            details.isConnected = false;
+            details.pingSuccess = onSuccess;
+            details.pingFailure = onFailure || noop; // onFailure optional
+            tryPing(details);
+        };
+        comm.sendMessage = function(message) {
+            sendMessage(details.origin, details.contentWindow, message);
+        };
+        comm.destroy = function() {
+            unregisterComm(details);
+            nullifyComm(comm);
+        };
+    }
+
+    function createComm(url, contentWindow, messageHandler) {
+        var origin = convertUrlToOrigin(url),
+            existingComm = findComm(origin, contentWindow),
+            isValid,
+            details,
             comm = {};
 
         // Comm already registered, return it instead of a new comm
@@ -239,34 +417,40 @@
             return existingComm;
         }
 
-        if (isValid)
-        {
-            // Create valid comm
-            comm = {
-                getOrigin: function() { return origin; },
-                getContentWindow: function() { return contentWindow; },
-                getMessageHandler: function() { return messageHandler; },
-                isValid: function() { return isValid; },
-                sendMessage: function(message) {
-                    contentWindow.postMessage(message, origin);
-                },
-                destroy: function() {
-                    unregisterComm(comm);
-                    nullifyComm(comm);
-                }
-            };
-        }
+        isValid = isValidOrigin(origin) && isValidContentWindow(contentWindow);
 
-        return isValid ? registerComm(comm) : nullifyComm(comm);
+        // Not a valid comm, return nullified comm
+        if (!isValid)
+        {
+            nullifyComm(comm);
+            return comm;
+        }
+        
+        // Create valid comm
+        details = {
+            origin: origin,
+            contentWindow: contentWindow,
+            messageHandler: messageHandler,
+            isValid: isValid,
+            isConnected: false,
+            pingSuccess: noop,
+            pingFailure: noop
+        };
+        setupComm(comm, details);
+        registerComm(comm, details);
+
+        return comm;
     }
 
     function createIframeComm(iframe, messageHandler) {
-        var origin = convertUrlToOrigin(iframe.src);
-        return createComm(origin, iframe.contentWindow, messageHandler);
+        return createComm(iframe.src, iframe.contentWindow, messageHandler);
     }
 
     function createParentComm(messageHandler) {
-        return createComm(getParentOrigin(), getParentContentWindow(), messageHandler);
+        var parentUrl = (window.document || {}).referrer,
+            parentContentWindow = window.opener || window.parent;
+        
+        return createComm(parentUrl, parentContentWindow, messageHandler);
     }
 
 
@@ -275,12 +459,11 @@
     ////////////////////////////////////////////////////////////
 
     function noConflict() {
-        window.postComm = nsPostComm;
+        window.postComm = postCommNamespace;
         return api;
     }
 
     // Define public interface using indirect references to protect internal use of public functions
-    api.convertUrlToOrigin = convertUrlToOrigin;
     api.findComm = findComm;
     api.engage = engage;
     api.disengage = disengage;

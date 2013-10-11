@@ -17,7 +17,7 @@
     asyncTest('Destroyed comm changes state correctly', 9, function() {
         var iframe = createIframe('destroyable', sameDomainEchoPath);
 
-        var myOrigin = postComm.convertUrlToOrigin(iframe.src);
+        var myOrigin = convertUrlToOrigin(iframe.src);
         var myContentWindow;
         var myHandler = function() {};
 
